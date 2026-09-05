@@ -6,7 +6,7 @@ This is a tool to make playing long-term text games of Blood on the Clocktower o
 
 Credit goes to the [Carat](https://github.com/JackKBroome/Carat_BOTC) bot in the Blood on the Clocktower [unofficial server](https://discord.com/invite/botc) for the general formatting & structure of text games on Discord. Text Town Square contains many features modeled after existing Carat commands.  
 
-The tool uses [YAGPDB](yagpdb.xyz) bot instead, eliminating the need for hosting. 
+The tool uses [YAGPDB](https://yagpdb.xyz) bot instead, eliminating the need for hosting. 
 
 ### Features
 * built-in commands: all actions are integrated via buttons and menus. No text commands are needed
