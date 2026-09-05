@@ -32,7 +32,7 @@ You will need `4` command slots open to run Text Town Square (the max is 50 for 
 
 Above `Trigger type` there is a number (e.g. `#23`). Remember this for later.
 
-`Command Trigger` can be whatever you want.
+`Command Trigger` and `Description` can be whatever you want.
 
 
 Setup the options like so:
@@ -41,6 +41,8 @@ Setup the options like so:
 
 
 <img width="1377" height="715" alt="image" src="https://github.com/user-attachments/assets/03b702aa-e264-4afe-99a9-5492ac8fa521" />
+
+
 
 Copy+Paste the code in the Response section.
 
