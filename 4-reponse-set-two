@@ -1,0 +1,80 @@
+{{$I := .StrippedID}}
+{{$embed := index .Interaction.Message.Embeds 0}}
+{{$sdict := structToSdict $embed}}
+{{$desc := $sdict.Description}}
+{{$content := .Interaction.Message.Content}}
+{{if eq $I "vote"}}
+	{{$mainChannel := .Channel.ParentID}}
+	{{$vote := index .Values 0}}
+	{{$p := index .Values 1}}
+	{{if not $p}}
+		{{$desc = reReplace (printf "<@%d>\n.*" .User.ID) $desc (printf "<@%d>\n%s" .User.ID $vote)}}
+		{{$sdict.Set "description" $desc}}
+		{{$msg := complexMessageEdit "embed" $sdict "content" $content}}
+		{{editMessage nil .Interaction.Message.ID $msg}}
+	{{else}}
+		 {{dbSet $mainChannel (printf "p-%d-%d" .Interaction.Message.ID .User.ID) $vote}}
+	{{end}}
+	Voted for this nomination.
+{{else if eq $I "adddefense"}}
+	{{$content = reReplace `Defense:.+` $content (printf "Defense: %s" (index .Values 0)) }}	
+ 	{{$message := complexMessageEdit "content" $content}}
+	{{editMessage nil .Interaction.Message.ID $message}}
+	Added defense.
+{{else if eq $I "countvotes"}}
+	{{$result := index .Values 0}}
+	{{$votes := reFindAll `(🪦\s)?(🗳️\s)?<@\d+>\n.*` $desc}}
+	{{$indVotes := split $result ";"}}
+	{{if not (eq (len $indVotes) (len $votes))}}
+		Number of votes sent does not match player count.
+	{{return}}
+	{{end}}
+	
+	{{$iterations := (len $votes) }}
+	{{$j := 0}}
+	{{$val := ""}}
+	{{$finalVotes := cslice}}
+	{{range $iterations}}
+		{{$val = index $indVotes $j}}
+		{{$val = toInt64 $val}}
+		{{if eq $val 1}}
+			{{$finalVotes = $finalVotes.Append "✅"}}
+		{{else if eq $val 0}}
+			{{$finalVotes = $finalVotes.Append "❌"}}
+		{{else if gt $val 1}}
+			{{$finalVotes = $finalVotes.Append (print "✅ **" $val "**")}}
+    	{{else if lt $val 0}}
+           	{{$finalVotes = $finalVotes.Append (print "➖ " "**" $val "**") }}
+		{{end}}
+		{{$j = add 1 $j}}
+	{{end}}
+ 
+	{{$k := 0}}
+	{{$editVotes := ""}}
+	{{range $votes}}
+		{{$symbol := index $finalVotes $k}}
+		{{$change := reReplace "\n.*" . (printf "\n%s" $symbol) }}
+		{{$editVotes = joinStr "\n\n" $editVotes $change}}
+		{{$k = add 1 $k}}
+	{{end}}
+	{{$sdict.Set "description" $editVotes}}
+	{{$message := complexMessageEdit "content" $content "embed" $sdict}}
+	{{editMessage nil .Interaction.Message.ID $message}}
+	Succesfully counted votes.
+{{else if eq $I "endgame"}}
+	{{if not (eq (index .Values 0) "CONFIRM")}}
+		Did not type CONFIRM correctly.
+	{{return}}
+	{{end}}
+	{{$x := dbDelMultiple (sdict "userID" .Interaction.ChannelID) 100 0}}
+	Ended the text game & deleted all data. Contact a mod/admin to start a new one.
+{{else if eq $I "whisper"}}
+	{{$memberID := index (index .Values 0) 0}} 
+	{{$whisper2 := (getMember $memberID).Nick}}
+	{{$whisper1 := .Member.Nick}}
+	{{$name := (print $whisper1 " & " $whisper2)}}
+	{{$thread := createThread nil nil $name true 10080 true}}
+   	{{addThreadMember $thread.ID $memberID}}
+   	{{addThreadMember $thread.ID .User.ID}}
+	Created whisper.
+{{end}}
