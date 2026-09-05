@@ -1,0 +1,51 @@
+{{if .ExecData}}
+	{{$hours := .ExecData.Get "hours"}}
+	{{$total := .ExecData.Get "total"}}
+	{{$msg := .ExecData.Get "msg"}}
+	{{$role := .ExecData.Get "role"}}
+	{{$hours = sub $total $hours}}
+	{{sendMessage nil (print "<@&" $role "> " $msg " in **" $hours "** hours!")}} 
+	{{return}}
+{{end}}
+{{$gameChannel := .Options.Get "game-channel"}}
+{{$stRole := .Options.Get "st-role"}}
+{{$playerRole := .Options.Get "player-role"}}
+{{$kibitzRole := .Options.Get "kibitz-role"}}
+{{$st := .Options.Get "storyteller"}}
+{{$script := .Options.Get "script"}} {{$num := .Options.Get "max-player-count"}}
+{{giveRole $st $stRole}}
+{{$list := " "}}
+{{$x := 0}}
+{{range $num}}
+	{{$x = add 1 .}}
+	{{$list = joinStr "\n" $list (print "**" $x ")** <empty seat>\n")}}
+{{end}}
+{{$embed := (cembed	"title" "Town Square" "color" 13870849 "description" $list "fields" (cslice
+	(sdict
+	"name" "Script"
+	"value" $script
+	"inline" true)
+	(sdict
+	"name" "Storyteller"
+	"value" (print "<@" $st.ID ">")
+	"inline" true))
+   	"thumbnail" (sdict
+	"url" "https://release.botc.app/resources/characters/generic/custom.webp"))}}
+{{$opts := (cslice 
+	(sdict "label" "Join/Leave Game" "value" "4" "description" "join the above game, or leave if in")
+   	(sdict "label" "Whisper" "value" "2" "description" "create a private whisper thread")
+   	(sdict "label" "Nominate" "value" "1" "description" "nominate a player for execution")
+   	(sdict "label" "Set Status" "value" "3" "description" "mark yourself as dead and remove vote token")
+ 	(sdict "label" "(ST) start game!" "value" "9" "description" "start the game with current count")
+   	(sdict "label" "(ST) create Nom Thread" "value" "5" "description" "create thread for nominations")
+   	(sdict "label" "(ST) add/remove to kib" "value" "6" "description" "add user to kib. if not in, or remove if in")
+   	(sdict "label" "(ST) set reminder" "value" "7" "description" "set reminders for end of day")
+   	(sdict "label" "(ST) send to threads" "value" "8" "description" "send a message to all ST threads")
+    (sdict "label" "(ST) end game" "value" "13" "description" "ends this game (can't be undone)"))}}
+ 
+{{$menu := cmenu "type" "text" "placeholder" "Choose an action" "options" $opts "custom_id" "textButtons" "min_values" 0 }}
+{{$id := sendMessageRetID $gameChannel.ID (complexMessage "embed" $embed "menus" $menu)}}
+{{$data := sdict "stRole" (str $stRole.ID) "pRole" (str $playerRole.ID) "kibRole" (str $kibitzRole.ID)}}
+{{dbSet $gameChannel.ID "roleInfo" $data}}
+{{pinMessage nil $id}}
+Succesfully setup this text game.
