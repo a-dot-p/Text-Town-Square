@@ -15,3 +15,5 @@ The tool uses [YAGPDB](yagpdb.xyz) bot instead, eliminating the need for hosting
 
 ## Setup
 
+### 1) Add YAGPDB
+If your server doesn't have it, add [YAGPDB](yagpdb.xyz).
