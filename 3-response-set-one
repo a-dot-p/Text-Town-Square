@@ -39,7 +39,7 @@
 {{else if eq $I "start"}}
 	{{if not ($sdict.Get "Fields")}} 
 	The game has already started! {{return}} {{end}}
-	{{$players := cslice.AppendSlice (reFindAll `\s[\w.\s]+\s<@\d+` $desc)}}
+	{{$players := cslice.AppendSlice (reFindAll `\s[\w.\s]+\s<@\d+>` $desc)}}
 	{{$desc = " "}}
 	{{$townSq := cslice}}
 	{{range $j, $x := $players}}
