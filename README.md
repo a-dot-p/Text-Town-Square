@@ -1,3 +1,6 @@
+<img width="641" height="725" alt="image" src="https://github.com/user-attachments/assets/c66b9c02-3ca4-41a1-958c-c1ed9ec87d93" />
+<img width="522" height="417" alt="image" src="https://github.com/user-attachments/assets/4734a15f-0cfd-47e0-9d0c-c9ab966828b1" />
+
 # Text Town Square
 This is a tool to make playing long-term text games of Blood on the Clocktower on Discord easy to setup and run.
 
@@ -76,8 +79,8 @@ Copy+Paste the code in the Response section.
 * this uses the built-in database to store info. If you are storing anything using the database, make sure its User ID is not the same as the channel ID of any games you are running, otherwise items may be deleted. Any other values will not be affected.
 * do not forget to change `CHANGE_ME` when implementing `3-response-set-one
 
-## 3) Usage
-I. Create a new channel for your text game. Also, create a channel for the kibitz (a private chat with spectators).
+## 3) Creating a game
+I. Create a new channel for your text game. Also, create a channel for the kibitz if needed. (a private chat with spectators).
 II. Create a role for the Storyteller, players, and kibitz members. This can be an existing role, as long as no other text game is using them. 
 III. Run the `/starttextgame` command (`1-setup`) to create the Town Square. (remember, this command should be Mod or Admin only). 
 IV. Players can now join the game! The ST should select the start option when ready to begin.
