@@ -47,5 +47,5 @@
 {{$id := sendMessageRetID $gameChannel.ID (complexMessage "embed" $embed "menus" $menu)}}
 {{$data := sdict "stRole" (str $stRole.ID) "pRole" (str $playerRole.ID) "kibRole" (str $kibitzRole.ID)}}
 {{dbSet $gameChannel.ID "roleInfo" $data}}
-{{pinMessage nil $id}}
+{{pinMessage $gameChannel.ID $id}}
 Succesfully setup this text game.
