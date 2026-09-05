@@ -81,9 +81,14 @@ Copy+Paste the code in the Response section.
 
 ## 3) Creating a game
 I. Create a new channel for your text game. Also, create a channel for the kibitz if needed. (a private chat with spectators).
+
 II. Create a role for the Storyteller, players, and kibitz members. This can be an existing role, as long as no other text game is using them. 
+
 III. Run the `/starttextgame` command (`1-setup`) to create the Town Square. (remember, this command should be Mod or Admin only). 
+
 IV. Players can now join the game! The ST should select the start option when ready to begin.
+
+
 
 ### Notes
 * most important guardrails are in-place, but you may see errors if an option was used incorrectly. Error messages are WIP.
