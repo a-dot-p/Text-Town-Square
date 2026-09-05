@@ -1,0 +1,111 @@
+{{if not .Values}} {{ephemeralResponse}} Menu reset. {{deleteResponse 1}} {{return}} {{end}}
+{{$op := toInt64 (index .Values 0)}}
+{{$gameChannel := .Channel.ID}}
+{{if .Channel.IsThread}}
+	{{$gameChannel = .Channel.ParentID}} 
+{{end}}
+{{$roles := (dbGet $gameChannel "roleInfo").Value}}
+{{$isST := or (hasRole ($roles.Get "stRole")) (hasRole "Bot Helper")}}
+{{$embed := index .Interaction.Message.Embeds 0}}
+{{$desc := (structToSdict $embed).Description}}
+{{if eq $op 1}} {{/*NOMINATE*/}}
+	{{$menu := cmenu "type" "mentionable" "placeholder" ". . ." "custom_id" "nomMenu" "required" true}}	
+	{{$ti := ctextInput "custom_id" "accusation" "style" 2 "placeholder" "..."}}
+	{{$labelText := clabel "label" "Add accusation" "component" $ti}}
+	{{$label := clabel "label" "Select a nominee" "component" $menu}}
+	{{$mb := modalBuilder "text-nom" "Nominate" $label $labelText}}
+	{{sendModal $mb}}
+{{else if eq $op 2}} {{/*START WHISPER*/}}
+	{{$menu := cmenu "type" "mentionable" "placeholder" ". . ." "custom_id" "whisperMenu" "required" true}}	
+	{{$label := clabel "label" "Select who you want to whisper" "component" $menu}}
+	{{$mb := modalBuilder "text2-whisper" "Whisper" $label}}
+	{{sendModal $mb}}
+{{else if eq $op 3}} {{/* SET STATUS*/}}
+	{{$menu := cmenu "type" "mentionable" "placeholder" "select a user" "custom_id" "statusMenu"}}
+	{{$label0 := clabel "label" "(ST) only: adjust someone else's status" "component" $menu}}
+	{{$rg := cradioGroup "custom_id" "statusMenu" "options" (cslice 
+      	(sdict "label" "alive" "value" "0" "default" true)
+		(sdict "label" "dead" "value" "1")
+ 		(sdict "label" "dead (without vote token)" "value" "2"))}}
+	{{$label := clabel "label" "Select a status for yourself" "component" $rg}}
+    {{$mb := modalBuilder "text-status" "Set Status" $label0 $label}}
+    {{sendModal $mb}}
+{{else if eq $op 4}} {{/* JOIN/LEAVE */}}
+	{{$numSeats := len (reFindAll `\*\d+` $desc)}}
+	{{$options := cslice}}
+	{{range $numSeats}}
+		{{$options = $options.Append (sdict "label" (str (add 1 .)) "value" (str (add 1 .) ))}}
+	{{end}}
+	{{$menu := cmenu "type" "text" "placeholder" "Choose a seat" "custom_id" "seatMenu" "options" $options "required" true}}
+	{{$ti := ctextInput "custom_id" "gamenickname" "style" 1 "placeholder" "..."}}
+	{{$labelText := clabel "label" "Name to put on the seat" "component" $ti "description" "leave blank if leaving"}}
+	{{$label := clabel "label" "Seat to Join/Leave" "component" $menu}}
+    {{$mb := modalBuilder "text-joinleave" "Join/Leave Game" $label $labelText}}
+    {{sendModal $mb}}
+{{else if and (eq $op 5) $isST}} {{/* NOM THREAD */}}
+	{{$ti := ctextInput "custom_id" "nomthreadname" "style" 1 "placeholder" "e.g. Day 2 Nominations" "required" true}}
+	{{$labelText := clabel "label" "Nomination Thread Name" "component" $ti}}
+	{{$mb := modalBuilder "text-threadNom" "Nominate" $labelText}}
+	{{sendModal $mb}}
+{{else if and (eq $op 6) $isST}} {{/* KIBITZ */}}
+	{{$menu := cmenu "type" "mentionable" "placeholder" ". . ." "custom_id" "nomMenu" "required" true "max_values" 10}}	
+	{{$label := clabel "label" "Select who to add or remove (up to 10)" "component" $menu}}
+	{{$mb := modalBuilder "text-kibitz" "Add/Remove Kibitz" $label}}
+	{{sendModal $mb}}
+{{else if and (eq $op 7) $isST}} {{/* SET REMINDER */}}
+	{{$ti := ctextInput "custom_id" "setreminder" "style" 1 "required" true "placeholder" "e.g. 12"}}
+	{{$ti2 := ctextInput "custom_id" "setreminderMsg" "style" 1 "required" true "placeholder" "e.g. Noms & whispers close"}}
+	{{$ti3 := ctextInput "custom_id" "setremindertotal" "style" 1 "required" true "placeholder" "e.g. 24"}}
+	{{$labelText := clabel "label" "Remind players that ___ hours are left" "component" $ti "description" "please resubmit this per each reminder you want to go out"}}
+	{{$labelText2 := clabel "label" "Remind message" "component" $ti2}}	
+	{{$labelText3 := clabel "label" "Total time in hours" "component" $ti3}}	
+	{{$mb := modalBuilder "text-setreminder" "Set Player Reminder" $labelText2 $labelText3 $labelText }}
+	{{sendModal $mb}}
+{{else if and (eq $op 8) $isST}} {{/* SEND TO THREADS */}}
+	{{$ti := ctextInput "custom_id" "sendtoall" "style" 2 "required" true}}
+	{{$labelText := clabel "label" "Message to send" "component" $ti}}
+	{{$mb := modalBuilder "text-sendtoall" "Send to ST Threads" $labelText}}
+	{{sendModal $mb}}
+{{else if and (eq $op 9) $isST}} {{/* START GAME */}}
+	{{$cb := ccheckbox "custom_id" "starttextgame"}}
+	{{$label := clabel "label" "I am ready to start the game." "description" "players can't be added or removed after this" "component" $cb}}
+	{{$mb := modalBuilder "text-start" "Are you sure?" $label}}
+	{{sendModal $mb}}
+{{else if eq $op 10}} {{/*VOTE*/}}
+	{{$ti := ctextInput "custom_id" "voteTTS" "style" 1 "required" true "placeholder" "e.g. Yes if Bob votes"}}	
+	{{$cb := ccheckbox "custom_id" "privatevote"}}
+	{{$labelText := clabel "label" "Vote message" "component" $ti "description" "your vote text to display above"}}
+	{{$labelCB := clabel "label" "Private vote?" "component" $cb "description" "mark if this is a private vote instead"}}
+	{{$mb := modalBuilder "text2-vote" "Vote" $labelText $labelCB}}
+	{{sendModal $mb}}
+{{else if eq $op 11}} {{/*ADD DEFENSE*/}}
+	{{$ti := ctextInput "custom_id" "adddefense" "style" 2 "required" true}}	
+	{{$labelText := clabel "label" "Defense text" "component" $ti "description" "your defense text to display above"}}
+	{{$mb := modalBuilder "text2-adddefense" "Add Defense" $labelText}}
+	{{sendModal $mb}}
+{{else if and (eq $op 12) $isST}} {{/* COUNT VOTES */}}
+	{{$td := ctextDisplay $desc}}
+	{{$channelID := .Channel.ParentID}}
+	{{$privateVotes := dbGetPattern $channelID (printf "p-%d-%%" .Interaction.Message.ID) 100 0}} 
+	{{$privateVoter := ""}}
+	{{$desc := "-# no private votes found for this nomination"}}
+	{{if $privateVotes}}
+		{{$desc = "**Private Votes:**"}}
+		{{range $privateVotes}}
+			{{$privateVoter = reFind `\d+$` .Key}}
+			{{$privateVoter = (getMember $privateVoter).Nick}}
+			{{$desc = joinStr "\n" $desc (printf "%s - %s" $privateVoter .Value)}}
+		{{end}}
+		{{$desc = print $desc "\n\n**Public Votes:**"}}
+	{{end}}
+	{{$tdp := ctextDisplay $desc}}
+	{{$ti := ctextInput "custom_id" "countVotesTTS" "style" 1 "required" true "placeholder" "e.g. 1;0;0;-1;0;2"}}	
+	{{$labelText := clabel "label" "Votes in order, separated by ;" "component" $ti "description" "the number is how many each vote counts for"}}
+	{{$mb := modalBuilder "text2-countvotes" "Count Votes" $tdp $td $labelText}}
+	{{sendModal $mb}}
+{{else if and (eq $op 13) $isST}} {{/* END GAME */}}
+	{{$ti := ctextInput "custom_id" "endTTS" "style" 1 "required" true "placeholder" "CONFIRM"}}	
+	{{$labelText := clabel "label" "Please type CONFIRM to end the game." "component" $ti}}
+	{{$mb := modalBuilder "text2-endgame" "Are you sure?" $labelText}}
+	{{sendModal $mb}}
+{{end}}
