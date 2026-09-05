@@ -1,0 +1,184 @@
+{{$I := .StrippedID}}
+{{$embed := index .Interaction.Message.Embeds 0}}
+{{$sdict := structToSdict $embed}}
+{{$desc := $sdict.Description}}
+{{$cid := .Channel.ID}}
+{{if eq $I "joinleave"}}
+	{{$st := (index $sdict.Fields 1).Value}} 
+	{{$threads := (dbGet $cid "stthreads").Value}}
+	{{$roles := (dbGet $cid "roleInfo").Value}}
+	{{$playerRole := $roles.Get "pRole"}}
+	{{$seat := index (index .Values 0) 0}}
+	{{$nick := index .Values 1}}
+	{{$ex := print `\*\*` $seat `.+`}}
+	{{if reFind .User.Mention $desc}} {{/*LEAVE*/}}
+		{{if dbGet $cid "townSq"}}
+		The game has started: you cannot leave a game in-progress. Contact the ST for a substitute if needed. {{return}}
+		{{end}}
+		{{$repl := print `**` $seat `)** ` `<empty seat>`}}
+		{{$desc = reReplace $ex $desc $repl}}
+		{{deleteThread ($threads.Get .User.Username)}}
+		{{$threads.Del .User.Username}}
+		{{dbSet $cid "stthreads" $threads}}
+		{{removeRole $playerRole}}
+		Left the game.	
+	{{else}}
+		{{$repl := print `**` $seat `)** ` $nick " " .User.Mention}}
+		{{$desc = reReplace $ex $desc $repl}}
+		{{$th := createThread nil nil (print "ST - " $nick) true 10080 true}}
+		{{addThreadMember $th.ID .User.ID}} {{addThreadMember $th.ID $st}}
+		{{if not $threads}}
+			{{$threads = sdict .User.Username (str $th.ID)}}
+		{{else}}
+			{{$threads.Set .User.Username (str $th.ID)}}
+		{{end}}
+		{{dbSet $cid "stthreads" $threads}}
+		{{addRole $playerRole}}
+		Joined the game.
+	{{end}}
+{{else if eq $I "start"}}
+	{{if not ($sdict.Get "Fields")}} 
+	The game has already started! {{return}} {{end}}
+	{{$players := cslice.AppendSlice (reFindAll `\s[\w.\s]+\s<@\d+` $desc)}}
+	{{$desc = " "}}
+	{{$townSq := cslice}}
+	{{range $j, $x := $players}}
+		{{$j = add 1 $j}}
+		{{$current := print "**" $j ")** " $x}}
+		{{$desc = joinStr "\n\n" $desc $current}}
+		{{$userID := reFind `<@\d+>` $x}}
+		{{$userID = reFind `\d+` $userID}}
+		{{$townSq = $townSq.Append $userID}}
+	{{end}}
+	{{$sdict.Del "Fields"}}
+	The game has started with the above players.
+	{{dbSet $cid "townSq" $townSq}}
+{{else if eq $I "threadNom"}}
+	{{$name := index .Values 0}}
+	{{$threadNoms := createThread nil nil $name}} {{addThreadMember $threadNoms.ID .User}}
+	{{dbSet $cid "threadNom" (str $threadNoms.ID)}} 
+	Created thread.
+{{else if eq $I "nom"}}
+	{{$nomThread := (dbGet $cid "threadNom").Value}}
+	{{if not $nomThread}} Today's nomination thread was not made by the ST yet. 
+	{{return}} {{end}}
+	{{$nomineeID := index (index .Values 0) 0}}
+	{{$accu := index .Values 1}}
+	{{$players := (dbGet $cid "townSq").Value}}
+	{{$numPlayers := len $players}}
+	{{$nominator := .Member.Nick}}
+	{{$nominee := (getMember $nomineeID).Nick }}
+	{{$nomineeURL := (getMember $nomineeID).User.AvatarURL "64"}}
+	{{$roles := (dbGet $cid "roleInfo").Value}}
+	{{$textRole := $roles.Get "pRole"}}	
+	{{$tsNames := cslice.AppendSlice (reFindAll `.+` $desc)}}
+	{{$startIndex := 0}}
+	{{$i := 0}}
+	{{range $players}}
+		{{if eq . $nomineeID }}
+        	{{$startIndex = add $i 1}} 
+    	{{end}} 	
+		{{if reFind "🗳️" (index $tsNames $i)}}
+			{{$players.Set $i (printf "🪦 🗳️ <@%s>" .)}} 
+		{{else if reFind "🪦" (index $tsNames $i)}}
+			{{$players.Set $i (printf "🪦 <@%s>" .)}} 
+		{{else}}
+			{{$players.Set $i (printf "<@%s>" .)}} 
+		{{end}}  
+		{{$i = add 1 $i}}
+	{{end}}
+	{{$votes := cslice}}
+	{{range $j := (seq 0 $numPlayers)}}
+		{{$k := (toInt (mod (add $startIndex $j) $numPlayers))}}
+		{{$voter := index $players $k}}
+    	{{$votes = $votes.Append $voter}}
+	{{end}}
+	{{$votes = joinStr "\n...\n\n" $votes}}
+	{{$votes = joinStr "\n" $votes "..."}}
+ 
+	{{$opts := (cslice 
+	(sdict "label" "Vote" "value" "10" "description" "vote for this nomination, including privately")
+   	(sdict "label" "Add Defense" "value" "11" "description" "add a defense if you're the nominee")
+   	(sdict "label" "(ST) count votes" "value" "12" "description" "count votes & finalize nomination"))}}
+	{{$menu := cmenu "type" "text" "placeholder" "Choose an action" "options" $opts "custom_id" "textButtons" "min_values" 0 }}
+	{{sendMessageNoEscape $nomThread (complexMessage
+	"content" (printf "<@&%s>\n%s nominates %s!\n\nAccusation: %s\n\nDefense: ..." $textRole $nominator $nominee $accu)
+    "menus" $menu                                                
+	"embed" (cembed
+		"title" "Votes"
+		"description" $votes
+		"color" 13870849 
+   	"author" (sdict "icon_url" (.User.AvatarURL "256") "name" .Member.Nick)
+    "thumbnail" (sdict "url" $nomineeURL)))}}
+	Nomination made in thread.
+{{else if eq $I "status"}}
+	{{$roles := (dbGet .Channel.ID "roleInfo").Value}}
+	{{$strole := $roles.Get "stRole"}}
+	{{$target := index .Values 0}} 
+	{{$user := .User.Mention}}
+	{{if and ($target) (hasRole $strole)}}
+		{{$user = print "<@" (index $target 0) ">"}}
+	{{else if $target}}
+		You are not authorized to change someone's status. 
+		{{return}}
+	{{end}}
+	{{$op := index .Values 1}} 
+	{{$status := ""}}
+	{{$ex := print $user `(\s🪦)?(\s🗳️)?`}} 
+	{{if eq $op "0"}}
+		{{$desc = reReplace $ex $desc $user}}
+		{{$status = "alive."}}
+	{{else if eq $op "1"}}
+		{{$desc = reReplace $ex $desc (print $user " 🪦 🗳️")}}
+       	{{$status = "dead."}}
+	{{else}}
+		{{$desc = reReplace $ex $desc (print $user " 🪦")}}
+		{{$status = "dead without a vote token."}}
+	{{end}}
+	Set status to {{$status}}
+{{else if eq $I "kibitz"}}
+	{{$members := index .Values 0}} 
+	{{$roles := (dbGet $cid "roleInfo").Value}}
+	{{$kibRole := $roles.Get "kibRole"}}
+	{{$added := ""}} {{$removed := ""}}
+	{{range $members}}
+		{{$x := getMember . }}
+  		{{if targetHasRole . $kibRole}}
+      		{{takeRole . $kibRole}}
+			{{$removed = print $removed $x.Nick ", "}}
+		{{else}}
+			{{giveRole . $kibRole}}
+			{{$added = print $added $x.Nick ", "}}
+		{{end}}
+  	{{end}}
+	Added {{$added -}} to kibitz.
+	Removed {{- $removed}} from kibitz. 
+{{else if eq $I "setreminder"}}
+	{{$msg := index .Values 0}}
+	{{$total := toFloat (index .Values 1)}}
+	{{$delay := toFloat (index .Values 2)}}
+	{{$delay = mult $delay 3600}}
+	{{$roles := (dbGet $cid "roleInfo").Value}}
+	{{$pRole := $roles.Get "pRole"}}
+	{{$data := sdict "hours" (index .Values 2) "msg" $msg "role" $pRole "total" $total}}
+	{{execCC 151 nil $delay $data}} 
+	Set the following reminder: **{{$msg}} in {{index .Values 2}} hours.**
+(goes out in {{sub $total (index .Values 2)}} hours).
+{{else if eq $I "sendtoall"}}
+	{{$msg := index .Values 0}}
+	{{$msg = print "### " $msg}}
+	{{$threads := (dbGet $cid "stthreads").Value}}
+	{{$embed := (cembed "author" (sdict
+		"icon_url" (.User.AvatarURL "256")
+		"name" .Member.Nick)
+		"color" 13870849
+		"description" $msg)}}
+	{{$m := complexMessage "embed" $embed}}
+	{{range $players, $tID := $threads}}
+		{{sendMessage $tID $m}}
+	{{end}}
+	Sent message to all ST threads.
+{{end}}
+{{$sdict.Set "description" $desc}}
+{{$msg := complexMessageEdit "embed" $sdict}}
+{{editMessage nil .Interaction.Message.ID $msg}}
