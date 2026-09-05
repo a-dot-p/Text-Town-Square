@@ -16,7 +16,7 @@ The tool uses [YAGPDB](yagpdb.xyz) bot instead, eliminating the need for hosting
 # Setup
 
 ## 1) Add YAGPDB
-If your server doesn't have it, add [YAGPDB](yagpdb.xyz). Go to [its control panel](https://yagpdb.xyz/manage) and go to Custom Commands. 
+If your server doesn't have it, add [YAGPDB](yagpdb.xyz). Go to [its control panel](https://yagpdb.xyz/manage) and go to Custom Commands. Make sure it has the appropriate permissions to add roles, create threads (including private), delete threads, send messages, etc. 
 
 ## 2) Add commands
 You will need `4` command slots open to run Text Town Square (the max is 50 for free users). Add the 4 files from this repository like so:
@@ -77,7 +77,15 @@ Copy+Paste the code in the Response section.
 * do not forget to change `CHANGE_ME` when implementing `3-response-set-one
 
 ## 3) Usage
+I. Create a new channel for your text game. Also, create a channel for the kibitz (a private chat with spectators).
+II. Create a role for the Storyteller, players, and kibitz members. This can be an existing role, as long as no other text game is using them. 
+III. Run the `/starttextgame` command (`1-setup`) to create the Town Square. (remember, this command should be Mod or Admin only). 
+IV. Players can now join the game! The ST should select the start option when ready to begin.
 
+### Notes
+* most important guardrails are in-place, but you may see errors if an option was used incorrectly. Error messages are WIP.
+* a nomination thread needs to be created to be able to nominate (through the menus)
+* the end game commands deletes all database values related to the game. 
 
 
 
