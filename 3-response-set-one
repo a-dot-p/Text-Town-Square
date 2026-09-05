@@ -5,7 +5,7 @@
 {{$cid := .Channel.ID}}
 {{if eq $I "joinleave"}}
 	{{$st := (index $sdict.Fields 1).Value}} 
-	{{$threads := (dbGet $cid "stthreads").Value}}r
+	{{$threads := (dbGet $cid "stthreads").Value}}
 	{{$roles := (dbGet $cid "roleInfo").Value}}
 	{{$playerRole := $roles.Get "pRole"}}
 	{{$seat := index (index .Values 0) 0}}
