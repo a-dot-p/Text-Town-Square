@@ -42,7 +42,7 @@ Setup the options like so:
 
 <img width="1377" height="715" alt="image" src="https://github.com/user-attachments/assets/03b702aa-e264-4afe-99a9-5492ac8fa521" />
 
-
+`Choices` for `max-player-count` should range from 5-20/
 
 Copy+Paste the code in the Response section.
 
