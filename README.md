@@ -13,12 +13,12 @@ The tool uses [YAGPDB](yagpdb.xyz) bot instead, eliminating the need for hosting
 * nominate, vote, add accusations & defenses
 * set hourly reminders, quickly message all players
 
-## Setup
+# Setup
 
-### 1) Add YAGPDB
+## 1) Add YAGPDB
 If your server doesn't have it, add [YAGPDB](yagpdb.xyz). Go to [its control panel](https://yagpdb.xyz/manage) and go to Custom Commands. 
 
-### 2) Add commands
+## 2) Add commands
 You will need `4` command slots open to run Text Town Square (the max is 50 for free users). Add the 4 files from this repository like so:
 
 ### `1-setup`
@@ -56,7 +56,25 @@ Copy+Paste the code in the Response section.
 Set this up *exactly* like below. Make sure trigger is `Modal Submission`
 <img width="920" height="527" alt="image" src="https://github.com/user-attachments/assets/25a3b86d-4646-4250-b999-92d6cd72a85c" />
 
-Copy+Paste the code in the Response section. **THEN,**
+`Name` can be whatever you want.
+
+Copy+Paste the code in the Response section.
+
+**$\color{red}{\text{IMPORTANT:}}$** Find `CHANGE_ME` in the code in `3-response-set-one`  and then replace it entirely with the number you found when creating `1-setup` (this is the custom command ID of that command). 
+
+
+### `4-response-set-two`
+Set this up *exactly* like below. Make sure trigger is `Modal Submission`
+<img width="893" height="491" alt="image" src="https://github.com/user-attachments/assets/8d1d14ea-49f2-40fc-8740-bbc5eec3a6dc" />
+
+`Name` can be whatever you want.
+
+Copy+Paste the code in the Response section.
+
+
+
+
+
 
 
  
