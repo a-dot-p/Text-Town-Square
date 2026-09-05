@@ -5,7 +5,7 @@
 {{$cid := .Channel.ID}}
 {{if eq $I "joinleave"}}
 	{{$st := (index $sdict.Fields 1).Value}} 
-	{{$threads := (dbGet $cid "stthreads").Value}}
+	{{$threads := (dbGet $cid "stthreads").Value}}r
 	{{$roles := (dbGet $cid "roleInfo").Value}}
 	{{$playerRole := $roles.Get "pRole"}}
 	{{$seat := index (index .Values 0) 0}}
@@ -161,7 +161,7 @@
 	{{$roles := (dbGet $cid "roleInfo").Value}}
 	{{$pRole := $roles.Get "pRole"}}
 	{{$data := sdict "hours" (index .Values 2) "msg" $msg "role" $pRole "total" $total}}
-	{{execCC 151 nil $delay $data}} 
+	{{execCC CHANGE_ME nil $delay $data}} 
 	Set the following reminder: **{{$msg}} in {{index .Values 2}} hours.**
 (goes out in {{sub $total (index .Values 2)}} hours).
 {{else if eq $I "sendtoall"}}
