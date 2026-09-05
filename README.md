@@ -71,6 +71,14 @@ Set this up *exactly* like below. Make sure trigger is `Modal Submission`
 
 Copy+Paste the code in the Response section.
 
+### Notes
+* make sure the YAGPDB role is higher than all roles it needs to give
+* this uses the built-in database to store info. If you are storing anything using the database, make sure its User ID is not the same as the channel ID of any games you are running, otherwise items may be deleted. Any other values will not be affected.
+* do not forget to change `CHANGE_ME` when implementing `3-response-set-one
+
+## 3) Usage
+
+
 
 
 
