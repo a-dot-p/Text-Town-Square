@@ -10,7 +10,7 @@ The tool uses [YAGPDB](yagpdb.xyz) bot instead, eliminating the need for hosting
 
 ### Features
 * built-in commands: all actions are integrated via buttons and menus. No text commands are needed
-* run as many games as you want simultaneousyly
+* run as many games as you want simultaneously
 * recruit and set up seat order
 * manage life & death status and dead votes
 * nominate, vote, add accusations & defenses
