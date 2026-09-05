@@ -42,7 +42,7 @@ Setup the options like so:
 
 <img width="1377" height="715" alt="image" src="https://github.com/user-attachments/assets/03b702aa-e264-4afe-99a9-5492ac8fa521" />
 
-`Choices` for `max-player-count` should range from 5-20/
+`Choices` for `max-player-count` should range from 5-20
 
 Copy+Paste the code in the Response section.
 
@@ -79,7 +79,7 @@ Copy+Paste the code in the Response section.
 ### Notes
 * make sure the YAGPDB role is higher than all roles it needs to give
 * this uses the built-in database to store info. If you are storing anything using the database, make sure its User ID is not the same as the channel ID of any games you are running, otherwise items may be deleted. Any other values will not be affected.
-* do not forget to change `CHANGE_ME` when implementing `3-response-set-one
+* do not forget to change `CHANGE_ME` when implementing `3-response-set-one`
 
 ## 3) Creating a game
 I. Create a new channel for your text game. Also, create a channel for the kibitz if needed. (a private chat with spectators).
