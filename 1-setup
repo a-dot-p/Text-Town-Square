@@ -4,7 +4,7 @@
 	{{$msg := .ExecData.Get "msg"}}
 	{{$role := .ExecData.Get "role"}}
 	{{$hours = sub $total $hours}}
-	{{sendMessage nil (print "<@&" $role "> " $msg " in **" $hours "** hours!")}} 
+	{{sendMessageNoEscape nil (print "<@&" $role "> " $msg " in **" $hours "** hours!")}} 
 	{{return}}
 {{end}}
 {{$gameChannel := .Options.Get "game-channel"}}
