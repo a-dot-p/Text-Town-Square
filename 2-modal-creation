@@ -5,7 +5,7 @@
 	{{$gameChannel = .Channel.ParentID}} 
 {{end}}
 {{$roles := (dbGet $gameChannel "roleInfo").Value}}
-{{$isST := or (hasRole ($roles.Get "stRole")) (hasRole "Bot Helper")}}
+{{$isST := hasRole ($roles.Get "stRole")}}
 {{$embed := index .Interaction.Message.Embeds 0}}
 {{$desc := (structToSdict $embed).Description}}
 {{if eq $op 1}} {{/*NOMINATE*/}}
