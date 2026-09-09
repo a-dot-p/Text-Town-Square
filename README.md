@@ -2,7 +2,7 @@
 <img width="522" height="417" alt="image" src="https://github.com/user-attachments/assets/4734a15f-0cfd-47e0-9d0c-c9ab966828b1" />
 
 # Text Town Square
-This is a tool to make playing long-term text games of Blood on the Clocktower on Discord easy to setup and run.
+This is a tool to make playing long-form text games of Blood on the Clocktower on Discord easy to setup and run.
 
 Credit goes to the [Carat](https://github.com/JackKBroome/Carat_BOTC) bot in the Blood on the Clocktower [unofficial server](https://discord.com/invite/botc) for the general formatting & structure of text games on Discord. Text Town Square contains many features modeled after existing Carat commands.  
 
