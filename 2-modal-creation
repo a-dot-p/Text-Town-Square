@@ -86,15 +86,12 @@
 {{else if and (eq $op 12) $isST}} {{/* COUNT VOTES */}}
 	{{$td := ctextDisplay $desc}}
 	{{$channelID := .Channel.ParentID}}
-	{{$privateVotes := dbGetPattern $channelID (printf "p-%d-%%" .Interaction.Message.ID) 100 0}} 
-	{{$privateVoter := ""}}
+	{{$privateVotes := dbGet $channelID .Interaction.Message.ID}} 
 	{{$desc := "-# no private votes found for this nomination"}}
 	{{if $privateVotes}}
 		{{$desc = "**Private Votes:**"}}
-		{{range $privateVotes}}
-			{{$privateVoter = reFind `\d+$` .Key}}
-			{{$privateVoter = (getMember $privateVoter).Nick}}
-			{{$desc = joinStr "\n" $desc (printf "%s - %s" $privateVoter .Value)}}
+		{{range $nick, $vote := $privateVotes.Value}}
+			{{$desc = joinStr "\n" $desc (printf "%s - %s" $nick $vote)}}
 		{{end}}
 		{{$desc = print $desc "\n\n**Public Votes:**"}}
 	{{end}}
