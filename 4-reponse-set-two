@@ -13,7 +13,14 @@
 		{{$msg := complexMessageEdit "embed" $sdict "content" $content}}
 		{{editMessage nil .Interaction.Message.ID $msg}}
 	{{else}}
-		 {{dbSet $mainChannel (printf "p-%d-%d" .Interaction.Message.ID .User.ID) $vote}}
+		{{if not ($db := dbGet $mainChannel .Interaction.Message.ID)}}
+			{{$val := sdict .Member.Nick $vote}}
+			{{dbSet $mainChannel .Interaction.Message.ID $val}}
+		{{else}}
+			{{$val := $db.Value}}
+			{{$val.Set .Member.Nick $vote}}
+			{{dbSet $mainChannel .Interaction.Message.ID $val}}
+		{{end}}	
 	{{end}}
 	Voted for this nomination.
 {{else if eq $I "adddefense"}}
