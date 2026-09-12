@@ -10,7 +10,7 @@
 	{{$playerRole := $roles.Get "pRole"}}
 	{{$seat := index (index .Values 0) 0}}
 	{{$nick := index .Values 1}}
-	{{$ex := print `\*\*` $seat `.+`}}
+	{{$ex := print `\*\*` $seat `\).+`}}
 	{{if reFind .User.Mention $desc}} {{/*LEAVE*/}}
 		{{if dbGet $cid "townSq"}}
 		The game has started: you cannot leave a game in-progress. Contact the ST for a substitute if needed. {{return}}
