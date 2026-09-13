@@ -5,7 +5,7 @@
 	{{$gameChannel = .Channel.ParentID}} 
 {{end}}
 {{$roles := (dbGet $gameChannel "roleInfo").Value}}
-{{$isST := hasRole ($roles.Get "stRole")}}
+{{$isST := or (hasRole ($roles.Get "stRole")) (hasRole "Bot Helper")}}
 {{$embed := index .Interaction.Message.Embeds 0}}
 {{$desc := (structToSdict $embed).Description}}
 {{if eq $op 1}} {{/*NOMINATE*/}}
@@ -50,7 +50,7 @@
 {{else if and (eq $op 6) $isST}} {{/* KIBITZ */}}
 	{{$menu := cmenu "type" "mentionable" "placeholder" ". . ." "custom_id" "nomMenu" "required" true "max_values" 10}}	
 	{{$label := clabel "label" "Select who to add or remove (up to 10)" "component" $menu}}
-	{{$mb := modalBuilder "text-kibitz" "Add/Remove Kibitz" $label}}
+	{{$mb := modalBuilder "text2-kibitz" "Add/Remove Kibitz" $label}}
 	{{sendModal $mb}}
 {{else if and (eq $op 7) $isST}} {{/* SET REMINDER */}}
 	{{$ti := ctextInput "custom_id" "setreminder" "style" 1 "required" true "placeholder" "e.g. 12"}}
@@ -59,7 +59,7 @@
 	{{$labelText := clabel "label" "Remind players that ___ hours are left" "component" $ti "description" "please resubmit this per each reminder you want to go out"}}
 	{{$labelText2 := clabel "label" "Remind message" "component" $ti2}}	
 	{{$labelText3 := clabel "label" "Total time in hours" "component" $ti3}}	
-	{{$mb := modalBuilder "text-setreminder" "Set Player Reminder" $labelText2 $labelText3 $labelText }}
+	{{$mb := modalBuilder "text2-setreminder" "Set Player Reminder" $labelText2 $labelText3 $labelText }}
 	{{sendModal $mb}}
 {{else if and (eq $op 8) $isST}} {{/* SEND TO THREADS */}}
 	{{$ti := ctextInput "custom_id" "sendtoall" "style" 2 "required" true}}
@@ -104,5 +104,14 @@
 	{{$ti := ctextInput "custom_id" "endTTS" "style" 1 "required" true "placeholder" "CONFIRM"}}	
 	{{$labelText := clabel "label" "Please type CONFIRM to end the game." "component" $ti}}
 	{{$mb := modalBuilder "text2-endgame" "Are you sure?" $labelText}}
+	{{sendModal $mb}}
+{{else if and (eq $op 14) $isST}} {{/* SEND CHARS */}}
+	{{$ti := ctextInput "custom_id" "sendCH" "style" 2 "required" true "placeholder" "Imp\nEmpath\n..."}}	
+	{{$cb := ccheckbox "custom_id" "spoiler"}}
+	{{$menu := cmenu "type" "channel" "placeholder" "..." "custom_id" "kibC"}}	
+	{{$labelText := clabel "label" "Characters, one per line" "component" $ti "description" "use official spelling. These will be shuffled then sent."}}
+    {{$label := clabel "label" "Spoiler character name & image?" "component" $cb}}
+    {{$labelMenu := clabel "label" "Kibitz channel to send characters list" "component" $menu}}
+    {{$mb := modalBuilder "text2-sendchars" "Send Characters" $labelText $label $labelMenu}}
 	{{sendModal $mb}}
 {{end}}
