@@ -10,6 +10,7 @@ The tool uses [YAGPDB](https://yagpdb.xyz) bot instead, eliminating the need for
 
 ### Features
 * built-in commands: all actions are integrated via buttons and menus. No text commands are needed
+* send a shuffled bag of characters to all players
 * run as many games as you want simultaneously
 * recruit and set up seat order
 * manage life & death status and dead votes
@@ -22,7 +23,21 @@ The tool uses [YAGPDB](https://yagpdb.xyz) bot instead, eliminating the need for
 If your server doesn't have it, add [YAGPDB](yagpdb.xyz). Go to [its control panel](https://yagpdb.xyz/manage) and go to Custom Commands. Make sure it has the appropriate permissions to add roles, create threads (including private), delete threads, send messages, etc. 
 
 ## 2) Add commands
-You will need `4` command slots open to run Text Town Square (the max is 50 for free users). Add the 4 files from this repository like so:
+You will need `4` command slots open to run Text Town Square (the max is 50 for free users). Add the 4 commands either through the links or manually:
+
+### Quick Setup
+1. [Setup](https://yagpdb.xyz/cc/K1m-PrZ5xS)
+
+     **$\color{red}{\text{IMPORTANT:}}$** set the role restrictions at the bottom to **Mod** or **Admin** roles on your server. This command can be abused.
+ 
+3. [Modals](https://yagpdb.xyz/cc/zgwGXaaZPM)
+4. [Responses #1](https://yagpdb.xyz/cc/ZWo3dI93oK)
+5. [Responses #2](https://yagpdb.xyz/cc/bJd-69GBH1)
+
+     **$\color{red}{\text{IMPORTANT:}}$** Find `"CHANGE_ME"` in the code and then replace it entirely with the custom command ID of `1-setup` (the number preceded by # at the very top of the editor). 
+
+
+### Manual Setup
 
 ### `1-setup`
  
@@ -65,7 +80,6 @@ Set this up *exactly* like below. Make sure trigger is `Modal Submission`
 
 Copy+Paste the code in the Response section.
 
-**$\color{red}{\text{IMPORTANT:}}$** Find `CHANGE_ME` in the code in `3-response-set-one`  and then replace it entirely with the number you found when creating `1-setup` (this is the custom command ID of that command). 
 
 
 ### `4-response-set-two`
@@ -75,6 +89,8 @@ Set this up *exactly* like below. Make sure trigger is `Modal Submission`
 `Name` can be whatever you want.
 
 Copy+Paste the code in the Response section.
+
+**$\color{red}{\text{IMPORTANT:}}$** Find `"CHANGE_ME"` in the code and then replace it entirely with the custom command ID of `1-setup` (the number preceded by # at the very top of the editor). 
 
 ### Notes
 * make sure the YAGPDB role is higher than all roles it needs to give
