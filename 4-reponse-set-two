@@ -7,8 +7,10 @@
 	{{$mainChannel := .Channel.ParentID}}
 	{{$vote := index .Values 0}}
 	{{$p := index .Values 1}}
+	{{$name := (dbGet $mainChannel "townSq").Value}}
+	{{$name = $name.Get (str .User.ID)}} 
 	{{if not $p}}
-		{{$desc = reReplace (printf "<@%d>\n.*" .User.ID) $desc (printf "<@%d>\n%s" .User.ID $vote)}}
+		{{$desc = reReplace (printf "%s\n.*" $name) $desc (printf "%s\n*%s*" $name $vote)}}
 		{{$sdict.Set "description" $desc}}
 		{{$msg := complexMessageEdit "embed" $sdict "content" $content}}
 		{{editMessage nil .Interaction.Message.ID $msg}}
@@ -20,7 +22,7 @@
 			{{$val := $db.Value}}
 			{{$val.Set .Member.Nick $vote}}
 			{{dbSet $mainChannel .Interaction.Message.ID $val}}
-		{{end}}	
+		{{end}}
 	{{end}}
 	Voted for this nomination.
 {{else if eq $I "adddefense"}}
@@ -30,7 +32,7 @@
 	Added defense.
 {{else if eq $I "countvotes"}}
 	{{$result := index .Values 0}}
-	{{$votes := reFindAll `(🪦\s)?(🗳️\s)?<@\d+>\n.*` $desc}}
+	{{$votes := reFindAll `(🪦\s)?(🗳️\s)?.+\n.+` $desc}}
 	{{$indVotes := split $result ";"}}
 	{{if not (eq (len $indVotes) (len $votes))}}
 		Number of votes sent does not match player count.
@@ -84,4 +86,67 @@
    	{{addThreadMember $thread.ID $memberID}}
    	{{addThreadMember $thread.ID .User.ID}}
 	Created whisper.
+{{else if eq $I "kibitz"}}
+	{{$members := index .Values 0}} 
+	{{$roles := (dbGet .Channel.ID "roleInfo").Value}}
+	{{$kibRole := $roles.Get "kibRole"}}
+	{{$added := ""}} {{$removed := ""}}
+	{{range $members}}
+		{{$x := getMember . }}
+  		{{if targetHasRole . $kibRole}}
+      		{{takeRole . $kibRole}}
+			{{$removed = print $removed $x.Nick ", "}}
+		{{else}}
+			{{giveRole . $kibRole}}
+			{{$added = print $added $x.Nick ", "}}
+		{{end}}
+  	{{end}}
+	Added {{$added}} to kibitz & removed {{$removed}} from kibitz. 
+{{else if eq $I "setreminder"}}
+	{{$msg := index .Values 0}}
+	{{$total := toFloat (index .Values 1)}}
+	{{$delay := toFloat (index .Values 2)}}
+	{{$delay = sub $total $delay}}
+	{{$delay = mult $delay 3600}}
+	{{$roles := (dbGet .Channel.ID "roleInfo").Value}} 
+	{{$pRole := $roles.Get "pRole"}}
+	{{$data := sdict "hours" (index .Values 2) "msg" $msg "role" $pRole "total" $total}}
+	{{execCC "CHANGE_ME" nil $delay $data}} 
+	Set the following reminder: **{{$msg}} in {{index .Values 2}} hours.**
+(goes out in {{div $delay 3600}} hours).
+{{else if eq $I "sendchars"}}
+	{{$chars := index .Values 0}}
+	{{$chars = cslice.AppendSlice (split $chars "\n")}}
+	{{$chars = shuffle $chars}}
+	{{$sp := index .Values 1}}
+	{{$channel := index (index .Values 2) 0}} 
+	{{$townSq := (dbGet .Channel.ID "townSq").Value}}
+	{{$threads := (dbGet .Channel.ID "stthreads").Value}}
+	{{if not (eq (len $threads) (len $chars))}} Character count does not match player count. {{return}} {{end}}
+	{{$i := 0}}
+	{{$list := cslice}}
+	{{range $uid, $id := $threads}}
+		{{$c := index $chars $i}}
+		{{$c2 := reReplace `\s` $c ``}}
+		{{$c2 = lower $c2}}
+		{{$b := componentBuilder}}
+		{{$img := (printf "https://images.klutzbanana.com/characters_official/%s.png" $c2)}}
+		{{if $sp}} {{$c = print "||" $c "||"}} {{end}}
+		{{$sec := sdict "text" (print "**You are the**\n## " $c) "thumbnail" (sdict "media" $img "spoiler" $sp)}}
+		{{$cont := componentBuilder}}
+		{{$b.Add "section" $sec}}
+		{{$cont.Add "container" (sdict "components" $b)}}
+		{{sendMessage $id $cont}}
+		{{$name := $townSq.Get $uid}}
+		{{$name = reFind (print `\*\*\d+\)\*\*\s+` $name `\s+`) $desc}}
+		{{$list = $list.Append (print $name ": " (index $chars $i))}}
+		{{$i = add 1 $i}}
+	{{end}}
+	{{$list = sort $list}}
+	{{$msg := ""}}
+	{{range $list}}
+		{{$msg = print $msg "\n" .}}
+	{{end}}
+	{{sendMessage $channel $msg}}
+	Succesfully sent characters.
 {{end}}
