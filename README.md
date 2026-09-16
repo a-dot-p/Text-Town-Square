@@ -26,9 +26,9 @@ The tool uses [YAGPDB](https://yagpdb.xyz) bot instead, eliminating the need for
 If your server doesn't have it, add [YAGPDB](yagpdb.xyz). Go to [its control panel](https://yagpdb.xyz/manage) and go to Custom Commands. Make sure it has the appropriate permissions to add roles, create threads (including private), delete threads, send messages, etc. 
 
 ## 2) Add commands
-You will need `4` command slots open to run Text Town Square (the max is 50 for free users). Add the 4 commands either through the links or manually:
+You will need `4` command slots open to run Text Town Square (the max is 50 for free users). Add the 4 commands either through the links below:
 
-### Quick Setup
+###  Setup
 1. [Setup](https://yagpdb.xyz/cc/K1m-PrZ5xS)
 
      **$\color{red}{\text{IMPORTANT:}}$** set the role restrictions at the bottom to **Mod** or **Admin** roles on your server. This command can be abused.
@@ -37,68 +37,6 @@ You will need `4` command slots open to run Text Town Square (the max is 50 for 
 4. [Responses #1](https://yagpdb.xyz/cc/ZWo3dI93oK)
 5. [Responses #2](https://yagpdb.xyz/cc/bJd-69GBH1)
 
-     **$\color{red}{\text{IMPORTANT:}}$** Find `"CHANGE_ME"` in the code and then replace it entirely with the custom command ID of `1-setup` (the number preceded by # at the very top of the editor). 
-
-
-### Manual Setup
-
-### `1-setup`
- 
- <img width="1132" height="306" alt="image" src="https://github.com/user-attachments/assets/84e32ff3-2fb4-4446-8f23-85fc3a8f5bea" />
- 
- *Note: this uses a custom slash commmand. YAGPDB only allows 3 custom slash commands per server, so this will take 1 slot*
-
-Above `Trigger type` there is a number (e.g. `#23`). Remember this for later.
-
-`Command Trigger` and `Description` can be whatever you want.
-
-
-Setup the options like so:
-
-<img width="1305" height="748" alt="image" src="https://github.com/user-attachments/assets/45052b21-4aae-4a60-a670-20fb49f72376" />
-
-
-<img width="1377" height="715" alt="image" src="https://github.com/user-attachments/assets/03b702aa-e264-4afe-99a9-5492ac8fa521" />
-
-`Choices` for `max-player-count` should range from 5-20. `kibitz-role` can be optional instead of required if you are not running a kibitz.
-
-Copy+Paste the code in the Response section.
-
-**$\color{red}{\text{IMPORTANT:}}$** set the role restrictions at the bottom to **Mod** or **Admin** roles on your server. This command can be abused.
-
-
-### `2-modal-creation`
-
-Set this up *exactly* like below. Make sure trigger is `Message Component`
-<img width="990" height="512" alt="image" src="https://github.com/user-attachments/assets/29784be5-cd81-42ad-bd7f-183421750d0e" />
-
-Copy+Paste the code in the Response section.
-
-
-### `3-response-set-one`
-Set this up *exactly* like below. Make sure trigger is `Modal Submission`
-<img width="920" height="527" alt="image" src="https://github.com/user-attachments/assets/25a3b86d-4646-4250-b999-92d6cd72a85c" />
-
-`Name` can be whatever you want.
-
-Copy+Paste the code in the Response section.
-
-
-
-### `4-response-set-two`
-Set this up *exactly* like below. Make sure trigger is `Modal Submission`
-<img width="893" height="491" alt="image" src="https://github.com/user-attachments/assets/8d1d14ea-49f2-40fc-8740-bbc5eec3a6dc" />
-
-`Name` can be whatever you want.
-
-Copy+Paste the code in the Response section.
-
-**$\color{red}{\text{IMPORTANT:}}$** Find `"CHANGE_ME"` in the code and then replace it entirely with the custom command ID of `1-setup` (the number preceded by # at the very top of the editor). 
-
-### Notes
-* make sure the YAGPDB role is higher than all roles it needs to give
-* this uses the built-in database to store info. If you are storing anything using the database, make sure its User ID is not the same as the channel ID of any games you are running, otherwise items may be deleted. Any other values will not be affected.
-* do not forget to change `CHANGE_ME` when implementing `3-response-set-one`
 
 ## 3) Creating a game
 I. Create a new channel for your text game. Also, create a channel for the kibitz if needed. (a private chat with spectators).
@@ -109,12 +47,53 @@ III. Run the `/starttextgame` command (`1-setup`) to create the Town Square in t
 
 IV. Players can now join the game! The ST should select the start option when ready to begin.
 
-
-
 ### Notes
+* make sure the YAGPDB role is higher than all roles it needs to give
+* this uses the built-in database to store info. If you are storing anything using the database, make sure its User ID is not the same as the channel ID of any games you are running, otherwise items may be deleted. Any other values will not be affected.
 * most important guardrails are in-place, but you may see errors if an option was used incorrectly. Error messages are WIP.
 * a nomination thread needs to be created to be able to nominate (through the menus)
-* the end game commands deletes all database values related to the game. 
+* the end game commands deletes all database values related to the game & **cannot** be undone. 
+
+***
+# Actions Guide
+## Players
+### Town Square
+`Join/Leave Game`: lets members join a seat and add a game nickname. To leave, use the same seat number and leave the name field blank. To change seats, leave and rejoin. A Storyteller thread is created for night actions (& deleted if the player leaves). 
+
+`Whisper`: creates a private thread with the selected user for game day private chats. 
+
+`Nominate`: creates a nomination in the nomination thread (must be made by the ST first) and adds the given accusation. Use the action menu on the nomination for voting.
+
+`Set Status`: mark yourself as dead, and remove your vote token ("ghost vote"). The Storyteller can override your status if needed.
+
+### Nominations
+
+`Vote`: updates your vote statement in the nomination. Check the private vote option to hide your vote and not update the nominatino. 
+
+`Add Defense`: lets the nominee add/update their defense statement.
+
+## Storyteller
+
+`(ST) start game!`: select to start the game with current players list. REQUIRED for in-game actions like nominations and voting. Players can't be added after this point.
+
+`(ST) create Nom thread`: creates the current day's nomination thread. Nominations can't be made without this first. 
+
+`(ST) add/remove to kib`: adds the selected members to the kibitz channel, and removes the selected members currently in it.
+
+`(ST) set reminder`: set a reminder to ping the game role at hourly intervals. To send the message "The game ends in 2 hours!" for a 24-hour game day, set "Total time" to 24 and "Remind players that ..." to 2. Resubmit this for each reminder (4 hours left, 6 hours left ...)
+
+`(ST) send to threads`: sends the given message to all ST threads. 
+
+`(ST) send characters`: randomly assign the list of characters. Separate characters per line & use the official spelling. Select the channel to send the final list of characters to (kibitz, if you have it). Check the box to spoiler the name & image. This will work with non-official characters, though images won't work. 
+
+`(ST) end game`: deletes all data stored for the game, removes player & your ST role. Cannot be undone. 
+
+
+
+
+
+
+
 
 
 
