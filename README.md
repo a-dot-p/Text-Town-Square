@@ -23,7 +23,7 @@ The tool uses [YAGPDB](https://yagpdb.xyz) bot instead, eliminating the need for
 # Setup
 
 ## 1) Add YAGPDB
-If your server doesn't have it, add [YAGPDB](yagpdb.xyz). Go to [its control panel](https://yagpdb.xyz/manage) and go to Custom Commands. Make sure it has the appropriate permissions to add roles, create threads (including private), delete threads, send messages, etc. 
+If your server doesn't have it, add [YAGPDB](yagpdb.xyz). Go to [its control panel](https://yagpdb.xyz/manage) and go to Custom Commands. Make sure it has the appropriate permissions to add roles, create threads (including private), delete threads, send messages, pin messages, etc. 
 
 ## 2) Add commands
 You will need `4` command slots open to run Text Town Square (the max is 50 for free users). Add the 4 commands either through the links below:
