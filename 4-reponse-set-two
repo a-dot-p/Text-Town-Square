@@ -75,6 +75,13 @@
 		Did not type CONFIRM correctly.
 	{{return}}
 	{{end}}
+	{{$roles := (dbGet .Channel.ID "roleInfo").Value}}
+	{{$pRole := $roles.Get "pRole"}}
+	{{$names := cslice.AppendSlice (reFindAll .User.Mention $desc)}}
+	{{range $names}}
+		{{takeRole . $pRole}}
+	{{end}}
+	{{removeRole ($roles.Get "stRole")}}
 	{{$x := dbDelMultiple (sdict "userID" .Interaction.ChannelID) 100 0}}
 	Ended the text game & deleted all data. Contact a mod/admin to start a new one.
 {{else if eq $I "whisper"}}
@@ -110,8 +117,9 @@
 	{{$delay = mult $delay 3600}}
 	{{$roles := (dbGet .Channel.ID "roleInfo").Value}} 
 	{{$pRole := $roles.Get "pRole"}}
+	{{$ccid := $roles.Get "ccid"}}
 	{{$data := sdict "hours" (index .Values 2) "msg" $msg "role" $pRole "total" $total}}
-	{{execCC "CHANGE_ME" nil $delay $data}} 
+	{{execCC $ccid nil $delay $data}} 
 	Set the following reminder: **{{$msg}} in {{index .Values 2}} hours.**
 (goes out in {{div $delay 3600}} hours).
 {{else if eq $I "sendchars"}}
