@@ -12,6 +12,18 @@
 {{$kibitzRole := .Options.Get "kibitz-role"}}
 {{$st := .Options.Get "storyteller"}}
 {{$script := .Options.Get "script"}} {{$num := .Options.Get "max-player-count"}}
+{{$color := 13870849}}
+{{$img := "https://release.botc.app/resources/characters/generic/custom.webp"}}
+{{if reFind `^(?i)(TB|trouble brewing)$` $script}}
+	{{$img = "https://release.botc.app/resources/editions/tb/logo.webp"}}
+	{{$color = 11471400}}
+{{else if reFind `^(?i)(BMR|bad moon rising)$` $script}}
+	{{$img = "https://release.botc.app/resources/editions/bmr/logo.webp"}}
+	{{$color = 14976298}}
+{{else if reFind `^(?i)(SNV|s&v|sects & violets)$` $script}}
+	{{$img = "https://release.botc.app/resources/editions/snv/logo.webp"}}
+	{{$color = 8999075}}
+{{end}}
 {{giveRole $st $stRole}}
 {{$list := " "}}
 {{$x := 0}}
@@ -19,7 +31,7 @@
 	{{$x = add 1 .}}
 	{{$list = joinStr "\n" $list (print "**" $x ")** <empty seat>\n")}}
 {{end}}
-{{$embed := (cembed	"title" "Town Square" "color" 13870849 "description" $list "fields" (cslice
+{{$embed := (cembed	"title" "Town Square" "color" $color "description" $list "fields" (cslice
 	(sdict
 	"name" "Script"
 	"value" $script
@@ -29,7 +41,7 @@
 	"value" (print "<@" $st.ID ">")
 	"inline" true))
    	"thumbnail" (sdict
-	"url" "https://release.botc.app/resources/characters/generic/custom.webp"))}}
+	"url" $img))}}
 {{$opts := (cslice 
 	(sdict "label" "Join/Leave Game" "value" "4" "description" "join the above game, or leave if in")
    	(sdict "label" "Whisper" "value" "2" "description" "create a private whisper thread")
@@ -46,7 +58,7 @@
  
 {{$menu := cmenu "type" "text" "placeholder" "Choose an action" "options" $opts "custom_id" "textButtons" "min_values" 0 }}
 {{$id := sendMessageRetID $gameChannel.ID (complexMessage "embed" $embed "menus" $menu)}}
-{{$data := sdict "stRole" (str $stRole.ID) "pRole" (str $playerRole.ID) "kibRole" (str $kibitzRole.ID)}}
+{{$data := sdict "stRole" (str $stRole.ID) "pRole" (str $playerRole.ID) "kibRole" (str $kibitzRole.ID) "ccid" .CCID}}
 {{dbSet $gameChannel.ID "roleInfo" $data}}
-{{pinMessage nil $id}}
+{{pinMessage $gameChannel.ID $id}}
 Succesfully setup this text game.
