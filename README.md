@@ -26,7 +26,7 @@ The tool uses [YAGPDB](https://yagpdb.xyz) bot instead, eliminating the need for
 If your server doesn't have it, add [YAGPDB](yagpdb.xyz). Go to [its control panel](https://yagpdb.xyz/manage) and go to Custom Commands. In Discord, make sure it has the appropriate permissions to add roles, create threads (including private), delete threads, send messages, pin messages, etc. 
 
 ## 2) Add commands
-You will need `4` command slots open to run Text Town Square (the max is 50 for free users). Add the 4 commands either through the links below:
+You will need `4` command slots open to run Text Town Square (the max is 100 for free users). Add the 4 commands either through the links below:
 
 ###  Setup
 1. [Setup](https://yagpdb.xyz/cc/K1m-PrZ5xS)
