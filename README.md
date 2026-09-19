@@ -73,7 +73,7 @@ IV. Players can now join the game! The ST should select the start option when re
 `Add Defense`: lets the nominee add/update their defense statement.
 
 ## Storyteller
-## Town Square
+### Town Square
 `(ST) start game!`: select to start the game with current players list. REQUIRED for in-game actions like nominations and voting. Players can't be added after this point.
 
 `(ST) create Nom thread`: creates the current day's nomination thread. Nominations can't be made without this first. 
@@ -88,7 +88,7 @@ IV. Players can now join the game! The ST should select the start option when re
 
 `(ST) end game`: deletes all data stored for the game, removes player & your ST role. Cannot be undone. 
 
-# Nominations
+### Nominations
 `(ST) count votes`: lets you tally the votes for each nomination. Private votes will show up at the top of the display, if any. Public votes are the same as on the nomination. Format like so: `1;1;1;0` where each number is how many it counts vor (ie. '1' for yes, '0' for no, other numbers for special characters like Banshee, Thief)
 
 
