@@ -15,10 +15,11 @@ The tool uses [YAGPDB](https://yagpdb.xyz) bot instead, eliminating the need for
 * built-in commands: all actions are integrated via buttons and menus. No text commands are needed
 * send a shuffled bag of characters to all players
 * run as many games as you want simultaneously
-* recruit and set up seat order
+* recruit and set up seat order at once
 * manage life & death status and dead votes
 * nominate, vote, add accusations & defenses
 * set hourly reminders, quickly message all players
+* get a game state json for clocktower.live usage
 
 # Setup
 
