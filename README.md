@@ -67,6 +67,8 @@ IV. Players can now join the game! The ST should select the start option when re
 
 `Set Status`: mark yourself as dead, and remove your vote token ("ghost vote"). The Storyteller can override your status if needed.
 
+`Get JSON`: get a game state JSON of the players in order to use on clocktower.live. Does not include script. Only works after the ST select start.
+
 ### Nominations
 
 `Vote`: updates your vote statement in the nomination. Check the private vote option to hide your vote and not update the nominatino. 
