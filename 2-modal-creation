@@ -1,27 +1,38 @@
-{{if not .Values}} {{ephemeralResponse}} Menu reset. {{deleteResponse 1}} {{return}} {{end}}
-{{$op := toInt64 (index .Values 0)}}
+{{if and (not .Values) (not .ExecData)}} {{ephemeralResponse}} Menu reset. {{deleteResponse 1}} {{return}} {{end}}
+{{$op := 0}}
+{{$TSmsg := ""}}
 {{$gameChannel := .Channel.ID}}
 {{if .Channel.IsThread}}
 	{{$gameChannel = .Channel.ParentID}} 
 {{end}}
 {{$roles := (dbGet $gameChannel "roleInfo").Value}}
-{{$isST := or (hasRole ($roles.Get "stRole")) (hasRole "Bot Helper")}}
-{{$embed := index .Interaction.Message.Embeds 0}}
+{{if .Values}}
+	{{$op = toInt64 (index .Values 0)}}
+	{{$TSmsg = .Interaction.Message}}
+{{else if .ExecData}} {{/* /command shortcut*/}}
+	{{$op = .ExecData}}
+	{{$TSmsg = (getMessage $gameChannel ($roles.Get "mid"))}}
+	{{if not $TSmsg}} {{ephemeralResponse}} Please send this in your game channel. {{return}} {{end}}
+{{end}}
+{{$isST := hasRole ($roles.Get "stRole")}}
+{{$embed := index $TSmsg.Embeds 0}}
 {{$desc := (structToSdict $embed).Description}}
 {{if eq $op 1}} {{/*NOMINATE*/}}
-	{{$menu := cmenu "type" "mentionable" "placeholder" ". . ." "custom_id" "nomMenu" "required" true}}	
+	{{$menu := cmenu "type" "user" "custom_id" "nomMenu" "required" true}}	
 	{{$ti := ctextInput "custom_id" "accusation" "style" 2 "placeholder" "..."}}
 	{{$labelText := clabel "label" "Add accusation" "component" $ti}}
 	{{$label := clabel "label" "Select a nominee" "component" $menu}}
 	{{$mb := modalBuilder "text-nom" "Nominate" $label $labelText}}
 	{{sendModal $mb}}
 {{else if eq $op 2}} {{/*START WHISPER*/}}
-	{{$menu := cmenu "type" "mentionable" "placeholder" ". . ." "custom_id" "whisperMenu" "required" true}}	
+	{{$menu := cmenu "type" "user" "custom_id" "whisperMenu" "required" true "max_values" 5}}	
+	{{$ti := ctextInput "custom_id" "whispname"}}
 	{{$label := clabel "label" "Select who you want to whisper" "component" $menu}}
-	{{$mb := modalBuilder "text2-whisper" "Whisper" $label}}
+	{{$l2 := clabel "label" "(Optional) Whisper thread name" "component" $ti}}
+	{{$mb := modalBuilder "text2-whisper" "Whisper" $label $l2}}
 	{{sendModal $mb}}
 {{else if eq $op 3}} {{/* SET STATUS*/}}
-	{{$menu := cmenu "type" "mentionable" "placeholder" "select a user" "custom_id" "statusMenu"}}
+	{{$menu := cmenu "type" "user" "placeholder" "select a user" "custom_id" "statusMenu"}}
 	{{$label0 := clabel "label" "(ST) only: adjust someone else's status" "component" $menu}}
 	{{$rg := cradioGroup "custom_id" "statusMenu" "options" (cslice 
       	(sdict "label" "alive" "value" "0" "default" true)
@@ -80,8 +91,8 @@
 	{{sendModal $mb}}
 {{else if eq $op 11}} {{/*ADD DEFENSE*/}}
 	{{$ti := ctextInput "custom_id" "adddefense" "style" 2 "required" true}}	
-	{{$labelText := clabel "label" "Defense text" "component" $ti "description" "your defense text to display above"}}
-	{{$mb := modalBuilder "text2-adddefense" "Add Defense" $labelText}}
+	{{$labelText := clabel "label" "New accusation or defense" "component" $ti}}
+	{{$mb := modalBuilder "text2-adddefense" "Edit Nominations" $labelText}}
 	{{sendModal $mb}}
 {{else if and (eq $op 12) $isST}} {{/* COUNT VOTES */}}
 	{{$td := ctextDisplay $desc}}
@@ -114,4 +125,24 @@
     {{$labelMenu := clabel "label" "Kibitz channel to send characters list" "component" $menu}}
     {{$mb := modalBuilder "text2-sendchars" "Send Characters" $labelText $label $labelMenu}}
 	{{sendModal $mb}}
+{{else if eq $op 15}} {{/* JSON */}}
+	{{$bluffs := cslice "null" "null" "null"}}
+	{{$edition := sdict "id" "tb"}}
+	{{$players := cslice}}
+	{{$list := (dbGet .Channel.ID "townSq").Value}}
+	{{range $y := $list}}
+		{{range $id, $nick := $y}}
+    		{{$plSdict := sdict}}
+    		{{$plSdict.Set "name" $nick}}
+    		{{$players = $players.Append $plSdict}}
+		{{end}}
+	{{end}}
+	{{$main := sdict "bluffs" $bluffs "edition" $edition "players" $players}}
+	{{$json := json $main true}}
+	{{$msg := complexMessage "file" $json "filename" "Game State JSON" "ephemeral" true}}
+	{{sendResponse .Interaction.Token $msg}}
+{{end}}
+{{$ccid := (dbGet $gameChannel "modalsCCID").Value}}
+{{if not $ccid}}
+	{{dbSet $gameChannel "modalsCCID" .CCID}}
 {{end}}
