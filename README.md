@@ -58,7 +58,13 @@ IV. Players can now join the game! The ST should select the start option when re
 * this uses the built-in database to store info. If you are storing anything using the database, make sure its User ID is not the same as the channel ID of any games you are running, otherwise items may be deleted. Any other values will not be affected.
 * most important guardrails are in-place, but you may see errors if an option was used incorrectly. Error messages are WIP.
 * a nomination thread needs to be created to be able to nominate (through the menus)
-* the end game commands deletes all database values related to the game & **cannot** be undone. 
+* the end game commands deletes all database values related to the game & **cannot** be undone.
+
+### Changing Emojis
+The default emojis used are 🪦 (death shroud), 🗳️ (vote token), ✅ (yes vote), ❌ (no vote). Changing these is a little complicated, but possible:
+
+1. Type the server emoji you want to replace it with into a channel, but put a `\` right before it. It should output as `<emojiName:123456789>`, with the numbers being the emoji ID. Do this for all.
+2. Find all instances of the emojis in the code to `<emojiName:123456789>` respectively for all of them. 
 
 ***
 # Actions Guide
