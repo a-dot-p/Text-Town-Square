@@ -59,7 +59,7 @@
 	{{$sdict := structToSdict $embed}}
 	{{$desc := $sdict.Description}}
 	{{$result := index .Values 0}}
-	{{$votes := reFindAll `(🪦\s)?(🗳️\s)?.+\n.+` .Message.Content}}
+	{{$votes := reFindAll `(🪦\s)?(🗳️\s)?.+\n.+` $desc}}
 	{{$indVotes := split $result ";"}}
 	{{if not (eq (len $indVotes) (len $votes))}}
 		Number of votes sent does not match player count.
@@ -94,7 +94,7 @@
 		{{$k = add 1 $k}}
 	{{end}}
 	{{$sdict.Set "description" $editVotes}}
-	{{$message := complexMessageEdit "content" $content "embed" $sdict}}
+	{{$message := complexMessageEdit "content" .Message.Content "embed" $sdict}}
 	{{editMessage nil .Interaction.Message.ID $message}}
 	Succesfully counted votes.
 {{else if eq $I "endgame"}}
