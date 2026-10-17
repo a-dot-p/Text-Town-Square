@@ -1,16 +1,21 @@
 {{$I := .StrippedID}}
-{{$embed := index .Interaction.Message.Embeds 0}}
+{{$gc := .Channel.ID}}
+{{if .Channel.IsThread}}
+	{{$gc = .Channel.ParentID}} 
+{{end}}
+{{$roles := (dbGet $gc "roleInfo").Value}}
+{{$TSmsg := getMessage $gc ($roles.Get "mid")}}
+{{$embed := index $TSmsg.Embeds 0}}
 {{$sdict := structToSdict $embed}}
 {{$desc := $sdict.Description}}
-{{$cid := .Channel.ID}}
+
 {{if eq $I "joinleave"}}
-	{{if dbGet $cid "townSq"}} 
+	{{if dbGet $gc "townSq"}} 
 		The game has already started! 
 		{{return}}
 	{{end}}
 	{{$st := (index $sdict.Fields 1).Value}} 
-	{{$threads := (dbGet $cid "stthreads").Value}}
-	{{$roles := (dbGet $cid "roleInfo").Value}}
+	{{$threads := (dbGet $gc "stthreads").Value}}
 	{{$playerRole := $roles.Get "pRole"}}
 	{{$seat := index (index .Values 0) 0}}
 	{{$nick := index .Values 1}}
@@ -21,10 +26,13 @@
 		{{$desc = reReplace $ex $desc $repl}}
 		{{deleteThread ($threads.Get $uid)}}
 		{{$threads.Del $uid}}
-		{{dbSet $cid "stthreads" $threads}}
+		{{dbSet $gc "stthreads" $threads}}
 		{{removeRole $playerRole}}
 		Left the game.	
 	{{else}}
+		{{$r1 := (print `\*\*` $seat `\)\*\* <emp`)}}
+		{{if not (reFind $r1 $desc)}} This seat is taken! {{return}} {{end}} 
+		{{if not $nick}} Please enter a name. {{return}} {{end}}
 		{{$repl := print `**` $seat `)** ` $nick " " .User.Mention}}
 		{{$desc = reReplace $ex $desc $repl}}
 		{{$th := createThread nil nil (print "ST - " $nick) true 10080 true}}
@@ -34,16 +42,16 @@
 		{{else}}
 			{{$threads.Set $uid (str $th.ID)}}
 		{{end}}
-		{{dbSet $cid "stthreads" $threads}}
+		{{dbSet $gc "stthreads" $threads}}
 		{{addRole $playerRole}}
 		Joined the game.
 	{{end}}
 {{else if eq $I "start"}}
 	{{if not ($sdict.Get "Fields")}} 
 	The game has already started! {{return}} {{end}}
-	{{$players := cslice.AppendSlice (reFindAllSubmatches `\s([\w\-.\s]+)\s<@(\d+)>` $desc)}}
+	{{$players := cslice.AppendSlice (reFindAllSubmatches `\s([\w\-.\s<>]+)\s<@(\d+)>` $desc)}}
 	{{$desc = " "}}
-	{{$townSq := sdict}}
+	{{$townSq := cslice}}
 	{{range $j, $x := $players}}
 		{{$j = add 1 $j}}
 		{{$id := index $x 2}}
@@ -51,46 +59,53 @@
 		{{$x = index $x 0}}
 		{{$current := print "**" $j ")** " $x}}
 		{{$desc = joinStr "\n\n" $desc $current}}
-		{{$townSq.Set $id $nick}} 
+		{{$info := sdict $id $nick}}
+		{{$townSq = $townSq.Append $info}} 
 	{{end}}
 	{{$desc = reReplace `(\n\n)$` $desc ``}}
 	{{$sdict.Del "Fields"}}
 	The game has started with the above players.
-	{{dbSet $cid "townSq" $townSq}}
+	{{dbSet $gc "townSq" $townSq}}
 {{else if eq $I "threadNom"}}
 	{{$name := index .Values 0}}
 	{{$threadNoms := createThread nil nil $name}} {{addThreadMember $threadNoms.ID .User}}
-	{{dbSet $cid "threadNom" (str $threadNoms.ID)}} 
+	{{dbSet $gc "threadNom" (str $threadNoms.ID)}} 
 	Created thread.
 {{else if eq $I "nom"}}
-	{{$nomThread := (dbGet $cid "threadNom").Value}}
+	{{$nomThread := (dbGet $gc "threadNom").Value}}
 	{{if not $nomThread}} Today's nomination thread was not made by the ST yet.
 	{{return}} {{end}}
 	{{$nomineeID := index (index .Values 0) 0}}
 	{{$accu := index .Values 1}}
-	{{$players := (dbGet $cid "townSq").Value}}
+	{{$players := (dbGet $gc "townSq").Value}}
 	{{$numPlayers := len $players}} 
-	{{$nominator := $players.Get (str .User.ID)}}
-	{{$nominee := $players.Get $nomineeID}}
-	{{if not $nominee}} Nominee is not in the game! {{return}} {{end}}
 	{{$nomineeURL := (getMember $nomineeID).User.AvatarURL "64"}}
-	{{$roles := (dbGet $cid "roleInfo").Value}}
 	{{$textRole := $roles.Get "pRole"}}	
 	{{$tsNames := cslice.AppendSlice (reFindAll `.+` $desc)}}
 	{{$startIndex := 0}}
 	{{$i := 0}}
 	{{$ps := cslice}}
-	{{range $id, $nick := $players}}
-		{{if eq $id $nomineeID }}
-        	{{$startIndex = add $i 1}} 
-    	{{end}} 	
-		{{if reFind "🗳️" (index $tsNames $i)}}
-			{{$ps = $ps.Append (printf "🪦 🗳️ %s" $nick)}} 
-		{{else if reFind "🪦" (index $tsNames $i)}}
-			{{$ps = $ps.Append (printf "🪦 %s" $nick)}} 
-		{{else}}
-			{{$ps = $ps.Append $nick}} 
-		{{end}}  
+	{{$nominator := ""}} {{$nominee := ""}}
+	{{$uid := str .User.ID}}
+	{{range $pl := $players}}
+		{{if $pl.Get $uid}}
+			{{$nominator = $pl.Get $uid}}
+		{{end}}
+		{{if $pl.Get $nomineeID}}
+			{{$nominee = $pl.Get $nomineeID}}
+		{{end}}
+		{{range $id, $nick := $pl}}
+			{{if eq $id $nomineeID }}
+        		{{$startIndex = add $i 1}} 
+    		{{end}} 	
+			{{if reFind "🗳️" (index $tsNames $i)}}
+				{{$ps = $ps.Append (printf "🪦 🗳️ %s" $nick)}} 
+			{{else if reFind "🪦" (index $tsNames $i)}}
+				{{$ps = $ps.Append (printf "🪦 %s" $nick)}} 
+			{{else}}
+				{{$ps = $ps.Append $nick}} 
+			{{end}} 
+		{{end}}
 		{{$i = add 1 $i}}
 	{{end}}
 	{{$votes := cslice}}
@@ -103,16 +118,15 @@
 	{{$votes = joinStr "\n" $votes "..."}}
 	{{$opts := (cslice 
 	(sdict "label" "Vote" "value" "10" "description" "vote for this nomination, including privately")
-   	(sdict "label" "Add Defense" "value" "11" "description" "add a defense if you're the nominee")
+   	(sdict "label" "Edit Nomination" "value" "11" "description" "add a defense or edit accusation")
    	(sdict "label" "(ST) count votes" "value" "12" "description" "count votes & finalize nomination"))}}
 	{{$menu := cmenu "type" "text" "placeholder" "Choose an action" "options" $opts "custom_id" "textButtons" "min_values" 0 }}
 	{{$embed := (cembed "title" "Votes" "description" $votes "color" 13870849 "author" (sdict "icon_url" (.User.AvatarURL "256") "name" .Member.Nick)
     "thumbnail" (sdict "url" $nomineeURL))}}
 	{{sendMessageNoEscape $nomThread (complexMessage
-	"content" (printf "<@&%s>\n%s nominates %s!\n\nAccusation: %s\n\nDefense: ..." $textRole $nominator $nominee $accu) "menus" $menu                     "embed" $embed)}}
+	"content" (printf "<@&%s>\n<@%s> nominates <@%s>!\n\n**Accusation:** %s\n\n**Defense:** ..." $textRole $uid $nomineeID $accu) "menus" $menu                     "embed" $embed)}}
 	Nomination made in thread.
 {{else if eq $I "status"}}
-	{{$roles := (dbGet .Channel.ID "roleInfo").Value}}
 	{{$strole := $roles.Get "stRole"}}
 	{{$target := index .Values 0}} 
 	{{$user := .User.Mention}}
@@ -124,22 +138,26 @@
 	{{end}}
 	{{$op := index .Values 1}} 
 	{{$status := ""}}
-	{{$ex := print $user `(\s🪦)?(\s🗳️)?`}} 
+	{{$sh := `🪦`}}
+	{{$shr := print `(\s` $sh `)?`}}
+	{{$vt := `🗳️`}}
+	{{$vtr := print `(\s` $vt `)?`}}
+	{{$ex := print $shr $vtr `([\w\-.\s<>]+\s` $user `)`}} 
 	{{if eq $op "0"}}
-		{{$desc = reReplace $ex $desc $user}}
+		{{$desc = reReplace $ex $desc `${3}`}}
 		{{$status = "alive."}}
 	{{else if eq $op "1"}}
-		{{$desc = reReplace $ex $desc (print $user " 🪦 🗳️")}}
+		{{$desc = reReplace $ex $desc (print ` ` $sh ` ` $vt `${3}`)}}
        	{{$status = "dead."}}
 	{{else}}
-		{{$desc = reReplace $ex $desc (print $user " 🪦")}}
+		{{$desc = reReplace $ex $desc (print ` ` $sh `${3}`)}}
 		{{$status = "dead without a vote token."}}
 	{{end}}
-	Set status to {{$status}}
+	Set status to $status.
 {{else if eq $I "sendtoall"}}
 	{{$msg := index .Values 0}}
 	{{$msg = print "### " $msg}}
-	{{$threads := (dbGet $cid "stthreads").Value}}
+	{{$threads := (dbGet $gc "stthreads").Value}}
 	{{$embed := (cembed "author" (sdict
 		"icon_url" (.User.AvatarURL "256")
 		"name" .Member.Nick)
@@ -153,4 +171,4 @@
 {{end}}
 {{$sdict.Set "description" $desc}}
 {{$msg := complexMessageEdit "embed" $sdict}}
-{{editMessage nil .Interaction.Message.ID $msg}}
+{{editMessage $gc $TSmsg.ID $msg}}
