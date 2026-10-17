@@ -28,7 +28,7 @@ The tool uses [YAGPDB](https://yagpdb.xyz) bot instead, eliminating the need for
 If your server doesn't have it, add [YAGPDB](yagpdb.xyz). Go to [its control panel](https://yagpdb.xyz/manage) and go to Custom Commands. In Discord, make sure it has the appropriate permissions to add roles, create threads (including private), delete threads, send messages, pin messages, etc. 
 
 ## 2) Add commands
-You will need `4` command slots open to run Text Town Square (the max is 100 for free users). Add the 5th if you want slash commmand shortcuts, which can be found under the `/text` category. Add the 4 commands either through the links below:
+You will need `4` command slots open to run Text Town Square (the max is 100 for free users). Add the 5th if you want slash commmand shortcuts, which can be found under the `/text` category. Add the 4 commands through the links below:
 
 ###  Setup
 1. [Setup](https://yagpdb.xyz/cc/K1m-PrZ5xS)
@@ -90,7 +90,7 @@ IV. Players can now join the game! The ST should select the start option when re
 
 *`(ST) set reminder`: set a reminder to ping the game role at hourly intervals. To send the message "The game ends in 2 hours!" for a 24-hour game day, set "Total time" to 24 and "Remind players that ..." to 2. Resubmit this for each reminder (4 hours left, 6 hours left ...)
 
-`(ST) send to threads`: sends the given message to all ST threads. 
+*`(ST) send to threads`: sends the given message to all ST threads. 
 
 `(ST) send characters`: randomly assign the list of characters. Separate characters per line & use the official spelling. Select the channel to send the final list of characters to (kibitz, if you have it). Check the box to spoiler the name & image. This will work with non-official characters, though images won't work. 
 
