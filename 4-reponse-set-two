@@ -1,14 +1,28 @@
 {{$I := .StrippedID}}
-{{$embed := index .Interaction.Message.Embeds 0}}
-{{$sdict := structToSdict $embed}}
-{{$desc := $sdict.Description}}
-{{$content := .Interaction.Message.Content}}
+{{$roles := (dbGet .Channel.ID "roleInfo").Value}}
+{{$desc := ""}}
+{{if not (.Channel.IsThread)}}
+	{{$TSmsg := getMessage nil ($roles.Get "mid")}}
+	{{$embed := index $TSmsg.Embeds 0}}
+	{{$sdict := structToSdict $embed}}
+	{{$desc = $sdict.Description}}
+	{{$content := $TSmsg.Content}}
+{{end}}
 {{if eq $I "vote"}}
+	{{$embed := index .Interaction.Message.Embeds 0}}
+	{{$sdict := structToSdict $embed}}
+	{{$desc := $sdict.Description}}
+	{{$content := .Message.Content}}
 	{{$mainChannel := .Channel.ParentID}}
 	{{$vote := index .Values 0}}
 	{{$p := index .Values 1}}
+	{{$uid := str .User.ID}}
 	{{$name := (dbGet $mainChannel "townSq").Value}}
-	{{$name = $name.Get (str .User.ID)}} 
+	{{range $x := $name}}
+		{{if $x.Get $uid}} 
+			{{$name = $x.Get $uid}}
+		{{end}}
+	{{end}}
 	{{if not $p}}
 		{{$desc = reReplace (printf "%s\n.*" $name) $desc (printf "%s\n*%s*" $name $vote)}}
 		{{$sdict.Set "description" $desc}}
@@ -23,16 +37,29 @@
 			{{$val.Set .Member.Nick $vote}}
 			{{dbSet $mainChannel .Interaction.Message.ID $val}}
 		{{end}}
+		**Your private vote:** {{$vote}} {{return}}
 	{{end}}
 	Voted for this nomination.
 {{else if eq $I "adddefense"}}
-	{{$content = reReplace `Defense:.+` $content (printf "Defense: %s" (index .Values 0)) }}	
+	{{$content := .Message.Content}}
+	{{$us := reFindAllSubmatches `<@(\d+)>` $content}}
+	{{$nominatorID := index (index $us 0) 1}}
+	{{$nomineeID := index (index $us 1) 1}}
+	{{$u := str .User.ID}}
+	{{if eq $u $nominatorID}} {{/*acc*/}}
+		{{$content = reReplace `(?s)sation.*\*Defense` $content (printf "sations:** %s\n\n**Defense" (index .Values 0)) }}	
+	{{else if eq $u $nomineeID}} {{/*def*/}}
+		{{$content = reReplace `(?s)Defense:.*` $content (printf "Defense:** %s" (index .Values 0)) }}	
+	{{else}} You are not the nominator or nominee. {{return}} {{end}}
  	{{$message := complexMessageEdit "content" $content}}
 	{{editMessage nil .Interaction.Message.ID $message}}
-	Added defense.
+	Nomination updated.
 {{else if eq $I "countvotes"}}
+	{{$embed := index .Interaction.Message.Embeds 0}}
+	{{$sdict := structToSdict $embed}}
+	{{$desc := $sdict.Description}}
 	{{$result := index .Values 0}}
-	{{$votes := reFindAll `(🪦\s)?(🗳️\s)?.+\n.+` $desc}}
+	{{$votes := reFindAll `(🪦\s)?(🗳️\s)?.+\n.+` .Message.Content}}
 	{{$indVotes := split $result ";"}}
 	{{if not (eq (len $indVotes) (len $votes))}}
 		Number of votes sent does not match player count.
@@ -75,7 +102,6 @@
 		Did not type CONFIRM correctly.
 	{{return}}
 	{{end}}
-	{{$roles := (dbGet .Channel.ID "roleInfo").Value}}
 	{{$pRole := $roles.Get "pRole"}}
 	{{$names := cslice.AppendSlice (reFindAll .User.Mention $desc)}}
 	{{range $names}}
@@ -85,17 +111,22 @@
 	{{$x := dbDelMultiple (sdict "userID" .Interaction.ChannelID) 100 0}}
 	Ended the text game & deleted all data. Contact a mod/admin to start a new one.
 {{else if eq $I "whisper"}}
-	{{$memberID := index (index .Values 0) 0}} 
-	{{$whisper2 := (getMember $memberID).Nick}}
-	{{$whisper1 := .Member.Nick}}
-	{{$name := (print $whisper1 " & " $whisper2)}}
+	{{$us := index .Values 0}}
+	{{$name := index .Values 1}} 
+	{{if not $name}}
+		{{range $us}}
+			{{$nick := (getMember .).Nick}}
+			{{$name = joinStr " + " $name $nick}}
+		{{end}}
+	{{end}}
 	{{$thread := createThread nil nil $name true 10080 true}}
-   	{{addThreadMember $thread.ID $memberID}}
+	{{range $us}}
+   		{{addThreadMember $thread.ID .}}
+	{{end}}
    	{{addThreadMember $thread.ID .User.ID}}
 	Created whisper.
 {{else if eq $I "kibitz"}}
 	{{$members := index .Values 0}} 
-	{{$roles := (dbGet .Channel.ID "roleInfo").Value}}
 	{{$kibRole := $roles.Get "kibRole"}}
 	{{$added := ""}} {{$removed := ""}}
 	{{range $members}}
@@ -115,12 +146,13 @@
 	{{$delay := toFloat (index .Values 2)}}
 	{{$delay = sub $total $delay}}
 	{{$delay = mult $delay 3600}}
-	{{$roles := (dbGet .Channel.ID "roleInfo").Value}} 
+	{{$futureTime := add currentTime.Unix (mult $total 3600)}}
+	{{$msg = printf "%s <t:%d:R>" $msg $futureTime}}
 	{{$pRole := $roles.Get "pRole"}}
 	{{$ccid := $roles.Get "ccid"}}
-	{{$data := sdict "hours" (index .Values 2) "msg" $msg "role" $pRole "total" $total}}
+	{{$data := sdict "hours" (index .Values 2) "msg" $msg "role" $pRole}}
 	{{execCC $ccid nil $delay $data}} 
-	Set the following reminder: **{{$msg}} in {{index .Values 2}} hours.**
+	Set the following reminder: **{{$msg}}**
 (goes out in {{div $delay 3600}} hours).
 {{else if eq $I "sendchars"}}
 	{{$chars := index .Values 0}}
@@ -133,6 +165,7 @@
 	{{if not (eq (len $threads) (len $chars))}} Character count does not match player count. {{return}} {{end}}
 	{{$i := 0}}
 	{{$list := cslice}}
+	{{$name := ""}}
 	{{range $uid, $id := $threads}}
 		{{$c := index $chars $i}}
 		{{$c2 := reReplace `\s` $c ``}}
@@ -145,16 +178,15 @@
 		{{$b.Add "section" $sec}}
 		{{$cont.Add "container" (sdict "components" $b)}}
 		{{sendMessage $id $cont}}
-		{{$name := $townSq.Get $uid}}
-		{{$name = reFind (print `\*\*\d+\)\*\*\s+` $name `\s+`) $desc}}
+		{{range $townSq}}
+			{{if .Get $uid}}
+				{{$name = .Get $uid}}
+			{{end}}
+		{{end}}
 		{{$list = $list.Append (print $name ": " (index $chars $i))}}
 		{{$i = add 1 $i}}
 	{{end}}
-	{{$list = sort $list}}
-	{{$msg := ""}}
-	{{range $list}}
-		{{$msg = print $msg "\n" .}}
-	{{end}}
+	{{$msg := joinStr "\n" $list}}
 	{{sendMessage $channel $msg}}
 	Succesfully sent characters.
 {{end}}
