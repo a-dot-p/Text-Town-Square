@@ -22,6 +22,8 @@ The tool uses [YAGPDB](https://yagpdb.xyz) bot instead, eliminating the need for
 * set hourly reminders, quickly message all players
 * get a game state json for clocktower.live usage
 
+<video src="ttsDemo.mp4" controls width="100%"></video>
+
 # Setup
 
 ## 1) Add YAGPDB
