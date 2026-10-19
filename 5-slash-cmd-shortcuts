@@ -18,4 +18,5 @@
 {{$cid := .Channel.ID}}
 {{if .Channel.IsThread}} {{$cid = .Channel.ParentID}} {{end}}
 {{$ccid := (dbGet $cid "modalsCCID").Value}}
+{{if not $ccid}} {{ephemeralResponse}} No game found in this channel. {{return}} {{end}}
 {{execCC (toInt64 $ccid) nil 0 $data}}
