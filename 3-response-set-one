@@ -153,7 +153,7 @@
 		{{$desc = reReplace $ex $desc (print ` ` $sh `${3}`)}}
 		{{$status = "dead without a vote token."}}
 	{{end}}
-	Set status to $status.
+	Set status to {{$status.}}
 {{else if eq $I "sendtoall"}}
 	{{$msg := index .Values 0}}
 	{{$msg = print "### " $msg}}
