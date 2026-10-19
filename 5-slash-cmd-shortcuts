@@ -1,0 +1,21 @@
+{{$cmd := .SubCommand}}
+{{$data := 0}}
+{{if eq $cmd "whisper"}}
+	{{$data = 2}}
+{{else if eq $cmd "nominate"}}
+	{{$data = 1}}
+{{else if eq $cmd "set-status"}}
+	{{$data = 3}}
+{{else if eq $cmd "create-nom-th"}}
+	{{$data = 5}}
+{{else if eq $cmd "add-to-kib"}}
+	{{$data = 6}}
+{{else if eq $cmd "set-reminder"}}
+	{{$data = 7}}
+{{else if eq $cmd "send-to-threads"}}
+	{{$data = 8}}
+{{end}}
+{{$cid := .Channel.ID}}
+{{if .Channel.IsThread}} {{$cid = .Channel.ParentID}} {{end}}
+{{$ccid := (dbGet $cid "modalsCCID").Value}}
+{{execCC (toInt64 $ccid) nil 0 $data}}
