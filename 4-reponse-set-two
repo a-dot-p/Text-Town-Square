@@ -47,7 +47,7 @@
 	{{$nomineeID := index (index $us 1) 1}}
 	{{$u := str .User.ID}}
 	{{if eq $u $nominatorID}} {{/*acc*/}}
-		{{$content = reReplace `(?s)sation.*\*Defense` $content (printf "sations:** %s\n\n**Defense" (index .Values 0)) }}	
+		{{$content = reReplace `(?s)sation.*\*Defense` $content (printf "sation:** %s\n\n**Defense" (index .Values 0)) }}	
 	{{else if eq $u $nomineeID}} {{/*def*/}}
 		{{$content = reReplace `(?s)Defense:.*` $content (printf "Defense:** %s" (index .Values 0)) }}	
 	{{else}} You are not the nominator or nominee. {{return}} {{end}}
@@ -118,6 +118,7 @@
 			{{$nick := (getMember .).Nick}}
 			{{$name = joinStr " + " $name $nick}}
 		{{end}}
+		{{$name = joinStr " + " $name .Member.Nick}}
 	{{end}}
 	{{$thread := createThread nil nil $name true 10080 true}}
 	{{range $us}}
