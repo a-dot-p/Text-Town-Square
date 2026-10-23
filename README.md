@@ -18,6 +18,7 @@ The tool uses [YAGPDB](https://yagpdb.xyz) bot instead, eliminating the need for
 * slash command shortcuts for most used commands
 * recruit and set up seat order at once
 * manage life & death status and dead votes
+* add and remove players (substitutions or Travellers)
 * nominate, vote, add accusations & defenses
 * set hourly reminders, quickly message all players
 * get a game state json for clocktower.live usage
@@ -93,6 +94,8 @@ The default emojis used are 🪦 (death shroud), 🗳️ (vote token), ✅ (yes 
 *`(ST) create Nom thread`: creates the current day's nomination thread. Nominations can't be made without this first. 
 
 *`(ST) add/remove to kib`: adds the selected members to the kibitz channel, and removes the selected members currently in it.
+
+*`(ST) add/remove players`: to add a player, select them and the seat they should be added *after* (ex. if you want them in seat 8, select seat 7). To remove a player, don't select a seat number. 
 
 *`(ST) set reminder`: set a reminder to ping the game role at hourly intervals. To send the message "The game ends in 2 hours!" for a 24-hour game day, set "Total time" to 24 and "Remind players that ..." to 2. Resubmit this for each reminder (4 hours left, 6 hours left ...)
 
