@@ -168,6 +168,62 @@
 		{{sendMessage $tID $m}}
 	{{end}}
 	Sent message to all ST threads.
+{{else if eq $I "addremove"}}
+	{{$tsq := (dbGet $gc "townSq").Value}}
+	{{if not $tsq}}
+    	You cannot add or remove players during recruiting. Select start then try again. {{return}}
+	{{end}}
+	{{$threads := (dbGet $gc "stthreads").Value}}
+	{{$newTS := cslice}} {{$uid := str .User.ID}}
+	{{$u := index (index .Values 0) 0}}
+	{{$m := getMember $u}} {{$nick := ""}}
+	{{if not $m.Nick}} 
+		{{$nick = $m.User.Globalname}} 
+	{{else}}
+		{{$nick = $m.Nick}}
+	{{end}}
+	{{$addRemove := index .Values 1}}
+	{{$seat := 0}}
+	{{if (index .Values 2)}}
+		{{$seat = index (index .Values 2) 0}}
+		{{if eq $addRemove "-1"}} If removing a player, leave the seat blank. {{return}} {{end}}
+	{{else if eq $addRemove "1"}} Please select a seat for this player to sit after. {{return}} 
+	{{end}}
+	{{$seat = toInt64 $seat}}
+	{{$newDesc := cslice}}
+	{{$list := reFindAllSubmatches `\*\s+((.+)\s+<@(\d+)>)` $desc}} {{$j := 0}}
+	{{range $i, $pl := $list}}
+		{{$j = add $j 1}}
+		{{$current := index $pl 1}}
+		{{$name := index $pl 2}}
+		{{$name = reReplace `(🪦)?(🗳️)?` $name ``}}
+		{{$name = reReplace `\s` $name ``}}
+		{{$tsid := str (index $pl 3)}}
+		{{if eq $j $seat}} {{/* ADDING */}}
+			{{if reFind $u $current}} This user is already added. {{return}} {{end}}
+			{{$newDesc = $newDesc.Append (printf "**%d)** %s" $j $current)}}
+			{{$newTS = $newTS.Append (sdict $tsid $name)}}
+			{{$j = add $j 1}}
+			{{$newDesc = $newDesc.Append (printf "**%d)** %s %s" $j $nick $m.User.Mention)}}
+			{{$newTS = $newTS.Append (sdict $u $nick)}}
+			{{$th := createThread nil nil (print "ST - " $nick) true 10080 true}}
+			{{addThreadMember $th.ID $uid}} {{addThreadMember $th.ID $u}} 
+			{{$threads.Set $u (str $th.ID)}}
+		{{else if reFind $u $current}} {{/* REMOVING */}}
+			{{if eq $addRemove "-1"}} 
+				{{$j = sub $j 1}}  
+				{{deleteThread ($threads.Get $u)}}
+				{{$threads.Del $u}}
+			{{end}}
+		{{else}}
+			{{$newDesc = $newDesc.Append (printf "**%d)** %s" $j $current)}}
+			{{$newTS = $newTS.Append (sdict $tsid $name)}}
+		{{end}}
+	{{end}}
+	{{$desc = joinStr "\n\n" $newDesc}}
+	{{dbSet $gc "townSq" $newTS}}
+	{{dbSet $gc "stthreads" $threads}}
+	Done.
 {{end}}
 {{$sdict.Set "description" $desc}}
 {{$msg := complexMessageEdit "embed" $sdict}}
