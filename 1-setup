@@ -49,6 +49,7 @@
  	(sdict "label" "(ST) start game!" "value" "9" "description" "start the game with current count")
    	(sdict "label" "(ST) create Nom Thread" "value" "5" "description" "create thread for nominations")
    	(sdict "label" "(ST) add/remove to kib" "value" "6" "description" "add user to kib. if not in, or remove if in")
+    (sdict "label" "(ST) add/remove players" "value" "16" "description" "add or remove players, including Travellers")
    	(sdict "label" "(ST) set reminder" "value" "7" "description" "set reminders for end of day")
    	(sdict "label" "(ST) send to threads" "value" "8" "description" "send a message to all ST threads")
     (sdict "label" "(ST) send characters" "value" "14" "description" "assign characters randomly")
