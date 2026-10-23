@@ -141,6 +141,22 @@
 	{{$json := json $main true}}
 	{{$msg := complexMessage "file" $json "filename" "Game State JSON" "ephemeral" true}}
 	{{sendResponse .Interaction.Token $msg}}
+{{else if and (eq $op 16) $isST}} {{/* ADD/REMOVE */}}
+	{{$numSeats := len (reFindAll `\*\d+` $desc)}}
+	{{$options := cslice}}
+	{{range $numSeats}}
+		{{$options = $options.Append (sdict "label" (str (add 1 .)) "value" (str (add 1 .) ))}}
+	{{end}}
+	{{$menu := cmenu "type" "text" "placeholder" "Choose a seat" "custom_id" "seatMenu" "options" $options}}
+	{{$rg := cradioGroup "custom_id" "addr" "options" (cslice 
+      	(sdict "label" "add" "value" "1")
+		(sdict "label" "remove" "value" "-1")) "required" true}}
+	{{$menu2 := cmenu "type" "user" "custom_id" "addRM" "required" true}}
+	{{$l1 := clabel "label" "User" "component" $menu2}}
+	{{$l2 := clabel "label" "Add or remove?" "component" $rg}}
+	{{$l3 := clabel "label" "Seat to add user AFTER" "component" $menu "description" "if removing, leave blank"}}
+	{{$mb := modalBuilder "text-addremove" "Add/Remove" $l1 $l2 $l3}}
+	{{sendModal $mb}}
 {{end}}
 {{$ccid := (dbGet $gameChannel "modalsCCID").Value}}
 {{if not $ccid}}
