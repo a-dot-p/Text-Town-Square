@@ -4,6 +4,9 @@
 	{{$gc = .Channel.ParentID}} 
 {{end}}
 {{$roles := (dbGet $gc "roleInfo").Value}}
+{{$emoji := (dbGet 7 "ttsEmoji").Value}}
+{{$sh := "🪦"}} {{$vt := "🗳️"}}
+{{if $emoji}} {{$sh = $emoji.Get "shroud"}} {{$vt = $emoji.Get "voteToken"}} {{end}}
 {{$TSmsg := getMessage $gc ($roles.Get "mid")}}
 {{$embed := index $TSmsg.Embeds 0}}
 {{$sdict := structToSdict $embed}}
@@ -49,15 +52,14 @@
 {{else if eq $I "start"}}
 	{{if not ($sdict.Get "Fields")}} 
 	The game has already started! {{return}} {{end}}
-	{{$players := cslice.AppendSlice (reFindAllSubmatches `\s([\w\-.\s<>]+)\s<@(\d+)>` $desc)}}
+	{{$players := cslice.AppendSlice (reFindAllSubmatches `\*\s(.+)\s<@(\d+)>` $desc)}}
 	{{$desc = " "}}
 	{{$townSq := cslice}}
 	{{range $j, $x := $players}}
 		{{$j = add 1 $j}}
 		{{$id := index $x 2}}
 		{{$nick := index $x 1}}
-		{{$x = index $x 0}}
-		{{$current := print "**" $j ")** " $x}}
+		{{$current := print "**" $j ")** " $nick " <@" $id ">"}}
 		{{$desc = joinStr "\n\n" $desc $current}}
 		{{$info := sdict $id $nick}}
 		{{$townSq = $townSq.Append $info}} 
@@ -70,7 +72,7 @@
 	{{$name := index .Values 0}}
 	{{$threadNoms := createThread nil nil $name}} {{addThreadMember $threadNoms.ID .User}}
 	{{dbSet $gc "threadNom" (str $threadNoms.ID)}} 
-	Created thread.
+	Created thread. {{return}}
 {{else if eq $I "nom"}}
 	{{$nomThread := (dbGet $gc "threadNom").Value}}
 	{{if not $nomThread}} Today's nomination thread was not made by the ST yet.
@@ -85,23 +87,16 @@
 	{{$startIndex := 0}}
 	{{$i := 0}}
 	{{$ps := cslice}}
-	{{$nominator := ""}} {{$nominee := ""}}
 	{{$uid := str .User.ID}}
 	{{range $pl := $players}}
-		{{if $pl.Get $uid}}
-			{{$nominator = $pl.Get $uid}}
-		{{end}}
-		{{if $pl.Get $nomineeID}}
-			{{$nominee = $pl.Get $nomineeID}}
-		{{end}}
 		{{range $id, $nick := $pl}}
 			{{if eq $id $nomineeID }}
         		{{$startIndex = add $i 1}} 
     		{{end}} 	
-			{{if reFind "🗳️" (index $tsNames $i)}}
-				{{$ps = $ps.Append (printf "🪦 🗳️ %s" $nick)}} 
-			{{else if reFind "🪦" (index $tsNames $i)}}
-				{{$ps = $ps.Append (printf "🪦 %s" $nick)}} 
+			{{if reFind $vt (index $tsNames $i)}}
+				{{$ps = $ps.Append (print $sh $vt $nick)}} 
+			{{else if reFind $sh (index $tsNames $i)}}
+				{{$ps = $ps.Append (print $sh $nick)}} 
 			{{else}}
 				{{$ps = $ps.Append $nick}} 
 			{{end}} 
@@ -125,7 +120,7 @@
     "thumbnail" (sdict "url" $nomineeURL))}}
 	{{sendMessageNoEscape $nomThread (complexMessage
 	"content" (printf "<@&%s>\n<@%s> nominates <@%s>!\n\n**Accusation:** %s\n\n**Defense:** ..." $textRole $uid $nomineeID $accu) "menus" $menu                     "embed" $embed)}}
-	Nomination made in thread.
+	Nomination made in thread. {{return}}
 {{else if eq $I "status"}}
 	{{$strole := $roles.Get "stRole"}}
 	{{$target := index .Values 0}} 
@@ -138,9 +133,7 @@
 	{{end}}
 	{{$op := index .Values 1}} 
 	{{$status := ""}}
-	{{$sh := `🪦`}}
 	{{$shr := print `(\s` $sh `)?`}}
-	{{$vt := `🗳️`}}
 	{{$vtr := print `(\s` $vt `)?`}}
 	{{$ex := print $shr $vtr `([\w\-.\s<>]+\s` $user `)`}} 
 	{{if eq $op "0"}}
@@ -153,7 +146,7 @@
 		{{$desc = reReplace $ex $desc (print ` ` $sh `${3}`)}}
 		{{$status = "dead without a vote token."}}
 	{{end}}
-	Set status to {{$status.}}
+	Set status to {{$status}}
 {{else if eq $I "sendtoall"}}
 	{{$msg := index .Values 0}}
 	{{$msg = print "### " $msg}}
@@ -167,13 +160,14 @@
 	{{range $players, $tID := $threads}}
 		{{sendMessage $tID $m}}
 	{{end}}
-	Sent message to all ST threads.
+	Sent message to all ST threads. {{return}}
 {{else if eq $I "addremove"}}
 	{{$tsq := (dbGet $gc "townSq").Value}}
 	{{if not $tsq}}
     	You cannot add or remove players during recruiting. Select start then try again. {{return}}
 	{{end}}
 	{{$threads := (dbGet $gc "stthreads").Value}}
+	{{$pR := $roles.Get "pRole"}}
 	{{$newTS := cslice}} {{$uid := str .User.ID}}
 	{{$u := index (index .Values 0) 0}}
 	{{$m := getMember $u}} {{$nick := ""}}
@@ -191,12 +185,13 @@
 	{{end}}
 	{{$seat = toInt64 $seat}}
 	{{$newDesc := cslice}}
+	{{$r := (printf `(%s)?(%s)?` $sh $vt)}}
 	{{$list := reFindAllSubmatches `\*\s+((.+)\s+<@(\d+)>)` $desc}} {{$j := 0}}
 	{{range $i, $pl := $list}}
 		{{$j = add $j 1}}
 		{{$current := index $pl 1}}
 		{{$name := index $pl 2}}
-		{{$name = reReplace `(🪦)?(🗳️)?` $name ``}}
+		{{$name = reReplace $r $name ``}}
 		{{$name = reReplace `\s` $name ``}}
 		{{$tsid := str (index $pl 3)}}
 		{{if eq $j $seat}} {{/* ADDING */}}
@@ -209,11 +204,13 @@
 			{{$th := createThread nil nil (print "ST - " $nick) true 10080 true}}
 			{{addThreadMember $th.ID $uid}} {{addThreadMember $th.ID $u}} 
 			{{$threads.Set $u (str $th.ID)}}
+			{{giveRole $u $pR}}
 		{{else if reFind $u $current}} {{/* REMOVING */}}
 			{{if eq $addRemove "-1"}} 
 				{{$j = sub $j 1}}  
 				{{deleteThread ($threads.Get $u)}}
 				{{$threads.Del $u}}
+				{{takeRole $u $pR}}
 			{{end}}
 		{{else}}
 			{{$newDesc = $newDesc.Append (printf "**%d)** %s" $j $current)}}
