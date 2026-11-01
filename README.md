@@ -62,10 +62,17 @@ IV. Players can now join the game! The ST should select the start option when re
 * the end game commands deletes all database values related to the game & **cannot** be undone.
 
 ### Changing Emojis
-The default emojis used are 🪦 (death shroud), 🗳️ (vote token), ✅ (yes vote), ❌ (no vote). Changing these is a little complicated, but possible:
+The default emojis used are 🪦 (death shroud) and 🗳️ (vote token). To change this, type out the following:
+```
+{{dbSet 7 "ttsEmoji" (sdict "shroud" "<shroud_emoji>" "voteToken" "<vote_token_emoji>")}}
+```
+replacing `<shroud_emoji>` and `<vote_token_emoji>` with the emojis you want, including server emojis.
 
-1. Type the server emoji you want to replace it with into a channel, but put a `\` right before it. It should output as `<emojiName:123456789>`, with the numbers being the emoji ID. Do this for all.
-2. Find all instances of the emojis in the code to `<emojiName:123456789>` respectively for all of them. 
+Use the `/customcommands eval` command (a default YAGPDB command), and put the above in the `code` section, like this:
+
+<img width="1030" height="100" alt="Screenshot 2026-11-01 141448" src="https://github.com/user-attachments/assets/eab4495e-66da-4ef7-a0ea-081e9eee6790" />
+
+Do **NOT** do this in the middle of a game: wait until the next one to set emojis. 
 
 ***
 # Actions Guide
