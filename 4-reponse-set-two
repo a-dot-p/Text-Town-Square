@@ -6,8 +6,10 @@
 	{{$embed := index $TSmsg.Embeds 0}}
 	{{$sdict := structToSdict $embed}}
 	{{$desc = $sdict.Description}}
-	{{$content := $TSmsg.Content}}
 {{end}}
+{{$emoji := (dbGet 7 "ttsEmoji").Value}}
+{{$sh := "🪦"}} {{$vt := "🗳️"}}
+{{if $emoji}} {{$sh = $emoji.Get "shroud"}} {{$vt = $emoji.Get "voteToken"}} {{end}}
 {{if eq $I "vote"}}
 	{{$embed := index .Interaction.Message.Embeds 0}}
 	{{$sdict := structToSdict $embed}}
@@ -29,14 +31,11 @@
 		{{$msg := complexMessageEdit "embed" $sdict "content" $content}}
 		{{editMessage nil .Interaction.Message.ID $msg}}
 	{{else}}
-		{{if not ($db := dbGet $mainChannel .Interaction.Message.ID)}}
-			{{$val := sdict .Member.Nick $vote}}
-			{{dbSet $mainChannel .Interaction.Message.ID $val}}
-		{{else}}
-			{{$val := $db.Value}}
-			{{$val.Set .Member.Nick $vote}}
-			{{dbSet $mainChannel .Interaction.Message.ID $val}}
-		{{end}}
+		{{$db := dbGet $mainChannel .Interaction.Message.ID}}
+		{{$val := sdict}}
+		{{if $db}} {{$val = $db.Value}} {{end}}
+		{{$val.Set .Member.Nick $vote}}
+		{{dbSet $mainChannel .Interaction.Message.ID $val}}
 		**Your private vote:** {{$vote}} {{return}}
 	{{end}}
 	Voted for this nomination.
@@ -59,7 +58,8 @@
 	{{$sdict := structToSdict $embed}}
 	{{$desc := $sdict.Description}}
 	{{$result := index .Values 0}}
-	{{$votes := reFindAll `(🪦\s)?(🗳️\s)?.+\n.+` $desc}}
+	{{$rx := (printf `(%s\s)?(%s\s)?.+\n.+` $sh $vt)}}
+	{{$votes := reFindAll $rx $desc}}
 	{{$indVotes := split $result ";"}}
 	{{if not (eq (len $indVotes) (len $votes))}}
 		Number of votes sent does not match player count.
