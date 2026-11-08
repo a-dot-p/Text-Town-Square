@@ -20,6 +20,7 @@
 	{{$st := (index $sdict.Fields 1).Value}} 
 	{{$threads := (dbGet $gc "stthreads").Value}}
 	{{$playerRole := $roles.Get "pRole"}}
+	{{.Values}} {{return}}
 	{{$seat := index (index .Values 0) 0}}
 	{{$nick := index .Values 1}}
 	{{$ex := print `\*\*` $seat `\).+`}}
@@ -70,8 +71,10 @@
 	{{dbSet $gc "townSq" $townSq}}
 {{else if eq $I "threadNom"}}
 	{{$name := index .Values 0}}
+	{{$cname := index .Values 1}}
 	{{$threadNoms := createThread nil nil $name}} {{addThreadMember $threadNoms.ID .User}}
 	{{dbSet $gc "threadNom" (str $threadNoms.ID)}} 
+	{{editChannelName $gc $cname}}
 	Created thread. {{return}}
 {{else if eq $I "nom"}}
 	{{$nomThread := (dbGet $gc "threadNom").Value}}
@@ -94,9 +97,9 @@
         		{{$startIndex = add $i 1}} 
     		{{end}} 	
 			{{if reFind $vt (index $tsNames $i)}}
-				{{$ps = $ps.Append (print $sh $vt $nick)}} 
+				{{$ps = $ps.Append (print $sh $vt " " $nick)}} 
 			{{else if reFind $sh (index $tsNames $i)}}
-				{{$ps = $ps.Append (print $sh $nick)}} 
+				{{$ps = $ps.Append (print $sh " " $nick)}} 
 			{{else}}
 				{{$ps = $ps.Append $nick}} 
 			{{end}} 
@@ -158,6 +161,7 @@
 		"description" $msg)}}
 	{{$m := complexMessage "embed" $embed}}
 	{{range $players, $tID := $threads}}
+		{{openThread (toInt64 $tID)}}
 		{{sendMessage $tID $m}}
 	{{end}}
 	Sent message to all ST threads. {{return}}
