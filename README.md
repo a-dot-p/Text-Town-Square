@@ -11,8 +11,10 @@ Credit goes to the [Carat](https://github.com/JackKBroome/Carat_BOTC) bot in the
 
 The tool uses [YAGPDB](https://yagpdb.xyz) bot instead, eliminating the need for hosting. 
 
+Questions: contact `@awesomep` on Discord.
+
 ### Features
-* built-in commands: all actions are integrated via buttons and menus. No text commands are needed
+* built-in commands: all actions are integrated via buttons and menus. 
 * send a shuffled bag of characters to all players
 * run as many games as you want simultaneously
 * slash command shortcuts for most used commands
@@ -20,16 +22,18 @@ The tool uses [YAGPDB](https://yagpdb.xyz) bot instead, eliminating the need for
 * manage life & death status and dead votes
 * add and remove players (substitutions or Travellers)
 * nominate, vote, add accusations & defenses
-* set hourly reminders, quickly message all players
+* set hourly reminders, quickly send a message to all ST threads
 * get a game state json for clocktower.live usage
 
 # Setup
 
 ## 1) Add YAGPDB
-If your server doesn't have it, add [YAGPDB](yagpdb.xyz). Go to [its control panel](https://yagpdb.xyz/manage) and go to Custom Commands. In Discord, make sure it has the appropriate permissions to add roles, create threads (including private), delete threads, send messages, pin messages, etc. 
+If your server doesn't have it, add [YAGPDB](yagpdb.xyz). Go to [its control panel](https://yagpdb.xyz/manage) and go to Custom Commands.
+
+In Discord, make sure it has the permissions to add roles, create & manage threads (including private), delete threads, send messages, and pin messages. 
 
 ## 2) Add commands
-You will need `4` command slots open to run Text Town Square (the max is 100 for free users). Add the 5th if you want slash commmand shortcuts, which can be found under the `/text` category. Add the 4 commands through the links below:
+You will need `4` command slots open to run Text Town Square (the max is 100 for free users). Add the 5th if you want slash commmand shortcuts, which can be found under the `/text` category. Add the commands through the links below:
 
 ###  Setup
 1. [Setup](https://yagpdb.xyz/cc/K1m-PrZ5xS)
@@ -46,13 +50,19 @@ You will need `4` command slots open to run Text Town Square (the max is 100 for
 
 
 ## 3) Creating a game
-I. Create a new channel for your text game. Also, create a channel for the kibitz if needed. (a private chat with spectators).
+I. Create a new channel for your text game. Also, create a channel for the kibitz if needed. (a private chat with spectators). **You can run as many games as you wish** (in separate channels)
 
 II. Create a role for the Storyteller, players, and kibitz members. This can be an existing role, as long as no other text game is using them. 
 
-III. Run the `/starttextgame` command (`1-setup`) to create the Town Square in the game channel. (remember, this command should be Mod or Admin only). 
+III. Run the `/starttextgame` command to create the Town Square in the game channel. (remember, this command should be Mod or Admin only). 
 
-IV. Players can now join the game! The ST should select the start option when ready to begin.
+IV. Players can now join the game using the `Join Game` option from the dropdown menu. The ST should select the `(ST) start game` option when ready to begin.
+
+Players whisper by creating a thread through the dropdown menu, the `/text whisper` shortuct (if you added it), or the Discord private thread creator.
+
+Nominations are made through the `Nominate` dropdown option or the `/text nominate` shortcut (if you added it). 
+
+V. After the game is over, the ST should select the `(ST) end game` option to reset the game. 
 
 ### Notes
 * make sure the YAGPDB role is higher than all roles it needs to give
@@ -62,17 +72,7 @@ IV. Players can now join the game! The ST should select the start option when re
 * the end game commands deletes all database values related to the game & **cannot** be undone.
 
 ### Changing Emojis
-The default emojis used are 🪦 (death shroud) and 🗳️ (vote token). To change this, type out the following:
-```
-{{dbSet 7 "ttsEmoji" (sdict "shroud" "<shroud_emoji>" "voteToken" "<vote_token_emoji>")}}
-```
-replacing `<shroud_emoji>` and `<vote_token_emoji>` with the emojis you want, including server emojis.
-
-Use the `/customcommands eval` command (a default YAGPDB command), and put the above in the `code` section, like this:
-
-<img width="1030" height="100" alt="Screenshot 2026-11-01 141448" src="https://github.com/user-attachments/assets/eab4495e-66da-4ef7-a0ea-081e9eee6790" />
-
-Do **NOT** do this in the middle of a game: wait until the next one to set emojis. 
+The default emojis used are 🪦 (death shroud) and 🗳️ (vote token). To change this, fill out the emoji options in the `/starttextgame` command. You only need to do this **ONCE**, after which it will remember for all future games.
 
 ***
 # Actions Guide
@@ -90,9 +90,9 @@ Do **NOT** do this in the middle of a game: wait until the next one to set emoji
 
 ### Nominations
 
-`Vote`: updates your vote statement in the nomination. Check the private vote option to hide your vote and not update the nominatino. 
+`Vote`: updates your vote statement in the nomination. Check the private vote option to hide your vote and not update the nomination. If you private vote, a button will appear for you to send it to your ST thread as a reference.
 
-`Edit Nomination`: lets the nominee add/update their defense statement, and the nominator update their acccusation. 
+`Edit Nomination`: lets the nominee add/update their defense statement, and the nominator update their acccusation. It will automatically detect who is who. 
 
 ## Storyteller
 ### Town Square
@@ -104,7 +104,7 @@ Do **NOT** do this in the middle of a game: wait until the next one to set emoji
 
 *`(ST) add/remove players`: to add a player, select them and the seat they should be added *after* (ex. if you want them in seat 8, select seat 7). To remove a player, don't select a seat number. 
 
-*`(ST) set reminder`: set a reminder to ping the game role at hourly intervals. To send the message "The game ends in 2 hours!" for a 24-hour game day, set "Total time" to 24 and "Remind players that ..." to 2. Resubmit this for each reminder (4 hours left, 6 hours left ...)
+*`(ST) set reminder`: set a reminder to ping the game role at hourly intervals. To send the message "The game ends in 2 hours!" for a 24-hour game day, set "Total time" to 24 and "Remind players that ..." to 2. Resubmit this for each reminder (4 hours left, 6 hours left ...). Use the dropdown menu in the response to send a copy of this reminder to your kibitz channel.
 
 *`(ST) send to threads`: sends the given message to all ST threads. 
 
