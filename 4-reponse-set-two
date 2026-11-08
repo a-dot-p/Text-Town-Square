@@ -1,25 +1,22 @@
 {{$I := .StrippedID}}
-{{$roles := (dbGet .Channel.ID "roleInfo").Value}}
-{{$desc := ""}}
-{{if not (.Channel.IsThread)}}
-	{{$TSmsg := getMessage nil ($roles.Get "mid")}}
-	{{$embed := index $TSmsg.Embeds 0}}
-	{{$sdict := structToSdict $embed}}
-	{{$desc = $sdict.Description}}
+{{$cd := .Channel.ID}}
+{{if .Channel.IsThread}} 
+	{{$cd = .Channel.ParentID}} 
 {{end}}
+{{$roles := (dbGet $cd "roleInfo").Value}}
 {{$emoji := (dbGet 7 "ttsEmoji").Value}}
 {{$sh := "🪦"}} {{$vt := "🗳️"}}
 {{if $emoji}} {{$sh = $emoji.Get "shroud"}} {{$vt = $emoji.Get "voteToken"}} {{end}}
+
 {{if eq $I "vote"}}
 	{{$embed := index .Interaction.Message.Embeds 0}}
 	{{$sdict := structToSdict $embed}}
 	{{$desc := $sdict.Description}}
 	{{$content := .Message.Content}}
-	{{$mainChannel := .Channel.ParentID}}
 	{{$vote := index .Values 0}}
 	{{$p := index .Values 1}}
 	{{$uid := str .User.ID}}
-	{{$name := (dbGet $mainChannel "townSq").Value}}
+	{{$name := (dbGet $cd "townSq").Value}}
 	{{range $x := $name}}
 		{{if $x.Get $uid}} 
 			{{$name = $x.Get $uid}}
@@ -30,13 +27,26 @@
 		{{$sdict.Set "description" $desc}}
 		{{$msg := complexMessageEdit "embed" $sdict "content" $content}}
 		{{editMessage nil .Interaction.Message.ID $msg}}
+		{{$vh := (dbGet $cd "vhist").Value}}
+		{{$vhMsg := (printf "**%s** voted `%s`\non %s" .User.Username $vote .Message.Link)}}
+		{{if not $vh}}
+			{{$vh = createThread $cd nil "Vote History"}}
+			{{$vh = $vh.ID}}
+			{{dbSet $cd "vhist" (str $vh)}}
+			{{sendMessageNoEscape $vh (mentionRole ($roles.Get "pRole"))}}
+		{{end}}
+		{{sendMessage $vh $vhMsg}} 
 	{{else}}
-		{{$db := dbGet $mainChannel .Interaction.Message.ID}}
+		{{$db := dbGet $cd .Interaction.Message.ID}}
 		{{$val := sdict}}
 		{{if $db}} {{$val = $db.Value}} {{end}}
 		{{$val.Set .Member.Nick $vote}}
-		{{dbSet $mainChannel .Interaction.Message.ID $val}}
-		**Your private vote:** {{$vote}} {{return}}
+		{{dbSet $cd .Interaction.Message.ID $val}}
+		{{$btn := cbutton "label" "Send to ST Thread" "custom_id" "textButtons-pv" "style" "success"}}
+		{{$ct := (printf "**Your private vote:**\n%s" $vote)}} 
+        {{$resp := complexMessage "content" $ct "buttons" $btn}}
+        {{sendResponse nil $resp}}
+		{{return}}
 	{{end}}
 	Voted for this nomination.
 {{else if eq $I "adddefense"}}
@@ -98,6 +108,9 @@
 	{{editMessage nil .Interaction.Message.ID $message}}
 	Succesfully counted votes.
 {{else if eq $I "endgame"}}
+	{{$embed := index .Interaction.Message.Embeds 0}}
+	{{$sdict := structToSdict $embed}}
+	{{$desc := $sdict.Description}}
 	{{if not (eq (index .Values 0) "CONFIRM")}}
 		Did not type CONFIRM correctly.
 	{{return}}
@@ -148,21 +161,24 @@
 	{{$delay = sub $total $delay}}
 	{{$delay = mult $delay 3600}}
 	{{$futureTime := add currentTime.Unix (mult $total 3600)}}
+	{{$sendTime := printf "<t:%d:t>" (add currentTime.Unix $delay)}}
 	{{$msg = printf "%s <t:%d:R>" $msg $futureTime}}
 	{{$pRole := $roles.Get "pRole"}}
 	{{$ccid := $roles.Get "ccid"}}
 	{{$data := sdict "hours" (index .Values 2) "msg" $msg "role" $pRole}}
 	{{execCC $ccid nil $delay $data}} 
-	Set the following reminder: **{{$msg}}**
-(goes out in {{div $delay 3600}} hours).
+	{{$menu := cmenu "type" "channel" "custom_id" "textButtons-r"}}	
+	{{$c := printf "Set the following reminder: **%s**\n(goes out at %s)\n\n*Send a copy to kibitz below:*" $msg $sendTime}}
+	{{$rsp := complexMessage "content" $c "menus" $menu}}
+	{{sendResponse nil $rsp}}
 {{else if eq $I "sendchars"}}
 	{{$chars := index .Values 0}}
 	{{$chars = cslice.AppendSlice (split $chars "\n")}}
 	{{$chars = shuffle $chars}}
 	{{$sp := index .Values 1}}
 	{{$channel := index (index .Values 2) 0}} 
-	{{$townSq := (dbGet .Channel.ID "townSq").Value}}
-	{{$threads := (dbGet .Channel.ID "stthreads").Value}}
+	{{$townSq := (dbGet $cd "townSq").Value}}
+	{{$threads := (dbGet $cd "stthreads").Value}}
 	{{if not (eq (len $threads) (len $chars))}} Character count does not match player count. {{return}} {{end}}
 	{{$i := 0}}
 	{{$list := cslice}}
@@ -179,14 +195,16 @@
 		{{$b.Add "section" $sec}}
 		{{$cont.Add "container" (sdict "components" $b)}}
 		{{sendMessage $id $cont}}
-		{{range $townSq}}
-			{{if .Get $uid}}
-				{{$name = .Get $uid}}
+		{{range $j, $t := $townSq}}
+			{{if $t.Get $uid}}
+				{{$name = $t.Get $uid}}
+				{{$name = (printf "**%d)** %s" (add $j 1) $name)}}
 			{{end}}
 		{{end}}
 		{{$list = $list.Append (print $name ": " (index $chars $i))}}
 		{{$i = add 1 $i}}
 	{{end}}
+	{{$list = sort $list}}
 	{{$msg := joinStr "\n" $list}}
 	{{sendMessage $channel $msg}}
 	Succesfully sent characters.
