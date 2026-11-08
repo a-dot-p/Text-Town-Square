@@ -9,7 +9,13 @@
 {{$playerRole := .Options.Get "player-role"}}
 {{$kibitzRole := .Options.Get "kibitz-role"}}
 {{$st := .Options.Get "storyteller"}}
-{{$script := .Options.Get "script"}} {{$num := .Options.Get "max-player-count"}}
+{{$script := .Options.Get "script-name"}} {{$num := .Options.Get "player-count"}}
+{{$sh := .Options.Get "shroud-emoji"}} {{$vt := .Options.Get "vote-token-emoji"}}
+{{$re := ""}}
+{{if and $sh $vt}}
+	{{dbSet 7 "ttsEmoji" (sdict "shroud" $sh "voteToken" $sh)}}
+	{{$re = (printf "Set the following emojis:\nShroud: %s\nVote Token: %s\n*You only need to do this once, after which it is permanently stored for all future games*" $sh $vt)}}
+{{end}}
 {{$color := 13870849}}
 {{$img := "https://release.botc.app/resources/characters/generic/custom.webp"}}
 {{if reFind `^(?i)(TB|trouble brewing)$` $script}}
@@ -47,7 +53,7 @@
    	(sdict "label" "Set Status" "value" "3" "description" "mark yourself as dead and remove vote token")
 	(sdict "label" "Get JSON" "value" "15" "description" "get game state json for clocktower.live")            
  	(sdict "label" "(ST) start game!" "value" "9" "description" "start the game with current count")
-   	(sdict "label" "(ST) create Nom Thread" "value" "5" "description" "create thread for nominations")
+   	(sdict "label" "(ST) start game day" "value" "5" "description" "create nom thread and edit channel name")
    	(sdict "label" "(ST) add/remove to kib" "value" "6" "description" "add user to kib. if not in, or remove if in")
     (sdict "label" "(ST) add/remove players" "value" "16" "description" "add or remove players, including Travellers")
    	(sdict "label" "(ST) set reminder" "value" "7" "description" "set reminders for end of day")
@@ -61,4 +67,5 @@
 {{$data := sdict "stRole" (str $stRole.ID) "pRole" (str $playerRole.ID) "kibRole" (str $kibitzRole.ID) "ccid" .CCID "mid" (str $id)}}
 {{dbSet $gameChannel.ID "roleInfo" $data}}
 {{pinMessage $gameChannel.ID $id}}
-Succesfully setup this text game.
+{{$re = joinStr "\n\n" $re "Succesfully setup this text game."}}
+{{sendResponse nil $re}}
