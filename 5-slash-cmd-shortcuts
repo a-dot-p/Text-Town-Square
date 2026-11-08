@@ -14,6 +14,11 @@
 	{{$data = 7}}
 {{else if eq $cmd "send-to-threads"}}
 	{{$data = 8}}
+{{else if eq $cmd "help"}}
+	{{$cmd := .SlashID}}
+	{{$msg := (printf "**Players**\n</text whisper:%d>\n</text nominate:%d>\n</text set-status:%d>\n\n**Storyteller**\n</text create-nom-th:%d>\n</text add-to-kib:%d>\n</text set-reminder:%d>\n</text send-to-threads:%d>" $cmd $cmd $cmd $cmd $cmd $cmd $cmd)}}
+	{{$emb := cembed "color" 13870849 "description" $msg "title" "Slash Command Shortcuts"}}
+	{{sendResponse .Interaction.Token $emb}} {{return}}
 {{end}}
 {{$cid := .Channel.ID}}
 {{if .Channel.IsThread}} {{$cid = .Channel.ParentID}} {{end}}
