@@ -80,11 +80,11 @@ The default emojis used are 🪦 (death shroud) and 🗳️ (vote token). To cha
 ### Town Square
 `Join/Leave Game`: lets members join a seat and add a game nickname. To leave, use the same seat number and leave the name field blank. To change seats, leave and rejoin. A Storyteller thread is created for night actions (& deleted if the player leaves). 
 
-*`Whisper`: creates a private thread with the selected user for game day private chats. 
+†`Whisper`: creates a private thread with the selected user for game day private chats. 
 
-*`Nominate`: creates a nomination in the nomination thread (must be made by the ST first) and adds the given accusation. Use the action menu on the nomination for voting.
+†`Nominate`: creates a nomination in the nomination thread (must be made by the ST first) and adds the given accusation. Use the action menu on the nomination for voting.
 
-*`Set Status`: mark yourself as dead, and remove your vote token ("ghost vote"). The Storyteller can override your status if needed.
+†`Set Status`: mark yourself as dead, and remove your vote token ("ghost vote"). The Storyteller can override your status if needed.
 
 `Get JSON`: get a game state JSON of the players in order to use on clocktower.live. Does not include script. Only works after the ST select start.
 
@@ -98,15 +98,15 @@ The default emojis used are 🪦 (death shroud) and 🗳️ (vote token). To cha
 ### Town Square
 `(ST) start game!`: select to start the game with current players list. REQUIRED for in-game actions like nominations and voting. Players can't be added after this point.
 
-*`(ST) create Nom thread`: creates the current day's nomination thread. Nominations can't be made without this first. 
+†`(ST) create Nom thread`: creates the current day's nomination thread. Nominations can't be made without this first. 
 
-*`(ST) add/remove to kib`: adds the selected members to the kibitz channel, and removes the selected members currently in it.
+†`(ST) add/remove to kib`: adds the selected members to the kibitz channel, and removes the selected members currently in it.
 
-*`(ST) add/remove players`: to add a player, select them and the seat they should be added *after* (ex. if you want them in seat 8, select seat 7). To remove a player, don't select a seat number. 
+†`(ST) add/remove players`: to add a player, select them and the seat they should be added *after* (ex. if you want them in seat 8, select seat 7). To remove a player, don't select a seat number. 
 
-*`(ST) set reminder`: set a reminder to ping the game role at hourly intervals. To send the message "The game ends in 2 hours!" for a 24-hour game day, set "Total time" to 24 and "Remind players that ..." to 2. Resubmit this for each reminder (4 hours left, 6 hours left ...). Use the dropdown menu in the response to send a copy of this reminder to your kibitz channel.
+†`(ST) set reminder`: set a reminder to ping the game role at hourly intervals. To send the message "The game ends in 2 hours!" for a 24-hour game day, set "Total time" to 24 and "Remind players that ..." to 2. Resubmit this for each reminder (4 hours left, 6 hours left ...). Use the dropdown menu in the response to send a copy of this reminder to your kibitz channel.
 
-*`(ST) send to threads`: sends the given message to all ST threads. 
+†`(ST) send to threads`: sends the given message to all ST threads. 
 
 `(ST) send characters`: randomly assign the list of characters. Separate characters per line & use the official spelling. Select the channel to send the final list of characters to (kibitz, if you have it). Check the box to spoiler the name & image. This will work with non-official characters, though images won't work. 
 
@@ -115,7 +115,7 @@ The default emojis used are 🪦 (death shroud) and 🗳️ (vote token). To cha
 ### Nominations
 `(ST) count votes`: lets you tally the votes for each nomination. Private votes will show up at the top of the display, if any. Public votes are the same as on the nomination. Format like so: `1;1;1;0` where each number is how many it counts vor (ie. '1' for yes, '0' for no, other numbers for special characters like Banshee, Thief)
 
-\* a slash commnand shortcut exists for this action
+†a slash commnand shortcut exists for this action
 
 
 
