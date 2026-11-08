@@ -75,7 +75,7 @@ V. After the game is over, the ST should select the `(ST) end game` option to re
 The default emojis used are 🪦 (death shroud) and 🗳️ (vote token). To change this, fill out the emoji options in the `/starttextgame` command. You only need to do this **ONCE**, after which it will remember for all future games.
 
 ***
-# Actions Guide
+# Full Guide
 ## Players
 ### Town Square
 `Join/Leave Game`: lets members join a seat and add a game nickname. To leave, use the same seat number and leave the name field blank. To change seats, leave and rejoin. A Storyteller thread is created for night actions (& deleted if the player leaves). 
