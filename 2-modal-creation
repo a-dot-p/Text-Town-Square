@@ -1,37 +1,38 @@
 {{if and (not .Values) (not .ExecData) (not .StrippedID)}} {{ephemeralResponse}} Menu reset. {{deleteResponse 1}} {{return}} {{end}}
 {{$op := 0}}
 {{$TSmsg := ""}}
-{{$gameChannel := .Channel.ID}}
-{{if .Channel.IsThread}}
-	{{$gameChannel = .Channel.ParentID}} 
-{{end}}
-{{$roles := (dbGet $gameChannel "roleInfo").Value}}
+{{$gc := .Channel.ID}}
+{{if .Channel.IsThread}} {{$gc = .Channel.ParentID}} {{end}}
+{{$roles := (dbGet $gc "roleInfo").Value}}
 {{if .Values}}
-	{{if .StrippedID}} {{/*reminders log*/}}
-		{{$kcid := index .Values 0}}
-		{{$m := reReplace `\*Se.+` .Message.Content ""}}
-		{{sendMessage $kcid $m}} {{ephemeralResponse}} Sent!
+	{{if .StrippedID}} {{/* reminders log */}}
+		{{sendMessage (index .Values 0) (reReplace `\*Se.+` .Message.Content "")}} {{ephemeralResponse}} Sent!
 		{{return}}
 	{{end}}
 	{{$op = toInt64 (index .Values 0)}}
 	{{$TSmsg = .Interaction.Message}}
 {{else if .ExecData}} {{/* slash command shortcuts */}}
 	{{$op = .ExecData}}
-	{{$TSmsg = (getMessage $gameChannel ($roles.Get "mid"))}}
+	{{$TSmsg = (getMessage $gc ($roles.Get "mid"))}}
 	{{if not $TSmsg}} {{ephemeralResponse}} Please send this in your game channel. {{return}} {{end}}
 {{else if .StrippedID}} {{/* send private vote */}}
-	{{$th := (dbGet $gameChannel "stthreads").Value}}
-	{{$u := str .User.ID}}
-	{{$th = $th.Get $u}}
-	{{$m := .Message.Content}} 
+	{{if reFind `\d+` .StrippedID}} {{/* cancel reminder*/}}
+		{{$ccid := $roles.Get "ccid"}}
+		{{cancelScheduledUniqueCC $ccid .StrippedID}}
+		{{ephemeralResponse}} Canceled.
+		{{return}}
+	{{end}}
+	{{$th := ((dbGet $gc "stthreads").Value).Get (str .User.ID)}}
 	{{$link := (getMessage nil .Message.Reference.MessageID).Link}}
-	{{sendMessage $th (printf "%s\n%s" $m $link)}}
+	{{sendMessage $th (printf "%s\n%s" .Message.Content $link)}}
 	{{ephemeralResponse}} Sent.
 	{{return}}
 {{end}}
 {{$isST := hasRole ($roles.Get "stRole")}}
-{{$embed := index $TSmsg.Embeds 0}}
-{{$desc := (structToSdict $embed).Description}}
+{{if and (not $isST) (in (cslice 5 6 7 8 9 12 13 14 16 17) $op)}}
+	{{ephemeralResponse}} You are not an ST. {{return}}
+{{end}}
+{{$desc := (structToSdict (index $TSmsg.Embeds 0)).Description}}
 {{if eq $op 1}} {{/*NOMINATE*/}}
 	{{$menu := cmenu "type" "user" "custom_id" "nomMenu" "required" true}}	
 	{{$ti := ctextInput "custom_id" "accusation" "style" 2}}
@@ -68,19 +69,19 @@
 	{{$l1 := clabel "label" "Seat to Join/Leave" "component" $menu}}
     {{$mb := modalBuilder "text-joinleave" "Join/Leave Game" $l1 $l2}}
     {{sendModal $mb}}
-{{else if and (eq $op 5) $isST}} {{/* NOM THREAD */}}
+{{else if eq $op 5}} {{/* NOM THREAD */}}
 	{{$ti := ctextInput "custom_id" "nomthreadname" "style" 1 "placeholder" "e.g. Day 2 Nominations" "required" true}}
 	{{$ti2 := ctextInput "custom_id" "cname" "style" 1}}
 	{{$l1 := clabel "label" "Nomination Thread Name" "component" $ti}}
 	{{$l2 := clabel "label" "Edit Channel Name" "component" $ti2}}
 	{{$mb := modalBuilder "text-threadNom" "Nominate" $l1 $l2}}
 	{{sendModal $mb}}
-{{else if and (eq $op 6) $isST}} {{/* KIBITZ */}}
+{{else if eq $op 6}} {{/* KIBITZ */}}
 	{{$menu := cmenu "type" "user" "custom_id" "nomMenu" "required" true "max_values" 10}}	
 	{{$l := clabel "label" "Select who to add or remove (up to 10)" "component" $menu}}
 	{{$mb := modalBuilder "text2-kibitz" "Add/Remove Kibitz" $l}}
 	{{sendModal $mb}}
-{{else if and (eq $op 7) $isST}} {{/* SET REMINDER */}}
+{{else if eq $op 7}} {{/* SET REMINDER */}}
 	{{$ti := ctextInput "custom_id" "setreminder" "style" 1 "required" true "placeholder" "e.g. 12"}}
 	{{$ti2 := ctextInput "custom_id" "setreminderMsg" "style" 1 "required" true "placeholder" "e.g. Noms & whispers close"}}
 	{{$ti3 := ctextInput "custom_id" "setremindertotal" "style" 1 "required" true "placeholder" "e.g. 24"}}
@@ -89,12 +90,12 @@
 	{{$l2 := clabel "label" "Total time in hours" "component" $ti3}}	
 	{{$mb := modalBuilder "text2-setreminder" "Set Player Reminder" $l1 $l2 $l3 }}
 	{{sendModal $mb}}
-{{else if and (eq $op 8) $isST}} {{/* SEND TO THREADS */}}
-	{{$ti := ctextInput "custom_id" "sendtoall" "style" 2 "required" true}}
+{{else if eq $op 8}} {{/* SEND TO THREADS */}}
+	{{$ti := ctextInput "custom_id" "sendtoall" "style" 2 "required" true "placholder" "Markdown supported"}}
 	{{$l := clabel "label" "Message to send" "component" $ti}}
 	{{$mb := modalBuilder "text-sendtoall" "Send to ST Threads" $l}}
 	{{sendModal $mb}}
-{{else if and (eq $op 9) $isST}} {{/* START GAME */}}
+{{else if eq $op 9}} {{/* START GAME */}}
 	{{$cb := ccheckbox "custom_id" "starttextgame"}}
 	{{$l := clabel "label" "I am ready to start the game." "component" $cb}}
 	{{$mb := modalBuilder "text-start" "Start" $l}}
@@ -111,10 +112,9 @@
 	{{$l := clabel "label" "New accusation or defense" "component" $ti}}
 	{{$mb := modalBuilder "text2-adddefense" "Edit Nominations" $l}}
 	{{sendModal $mb}}
-{{else if and (eq $op 12) $isST}} {{/* COUNT VOTES */}}
+{{else if eq $op 12}} {{/* COUNT VOTES */}}
 	{{$td := ctextDisplay $desc}}
-	{{$channelID := .Channel.ParentID}}
-	{{$privateVotes := dbGet $channelID .Interaction.Message.ID}} 
+	{{$privateVotes := dbGet $gc .Interaction.Message.ID}} 
 	{{$desc := "-# no private votes found for this nomination"}}
 	{{if $privateVotes}}
 		{{$desc = "**Private Votes:**"}}
@@ -127,13 +127,17 @@
 	{{$ti := ctextInput "custom_id" "countVotesTTS" "style" 1 "required" true "placeholder" "e.g. 1;0;0;-1;0;2"}}	
 	{{$l := clabel "label" "Votes in order, separated by ;" "component" $ti "description" "the number is how many each vote counts for"}}
 	{{$mb := modalBuilder "text2-countvotes" "Count Votes" $tdp $td $l}}
-	{{sendModal $mb}}
-{{else if and (eq $op 13) $isST}} {{/* END GAME */}}
+	{{sendModal $mb}} 
+{{else if eq $op 17}} {{/* SEE VOTES*/}}
+	{{$menu := cmenu "type" "channel" "custom_id" "svMenu" "required" true}}	
+	{{$l := clabel "label" "Kibitz or other channel to send votes" "component" $menu}}
+	{{$mb := modalBuilder "text2-seevotes" "See Votes" $l}} {{sendModal $mb}} 
+{{else if eq $op 13}} {{/* END GAME */}}
 	{{$ti := ctextInput "custom_id" "endTTS" "style" 1 "required" true "placeholder" "CONFIRM"}}	
 	{{$l := clabel "label" "Please type CONFIRM to end the game." "component" $ti}}
 	{{$mb := modalBuilder "text2-endgame" "Are you sure?" $l}}
 	{{sendModal $mb}}
-{{else if and (eq $op 14) $isST}} {{/* SEND CHARS */}}
+{{else if eq $op 14}} {{/* SEND CHARS */}}
 	{{$ti := ctextInput "custom_id" "sendCH" "style" 2 "required" true "placeholder" "Imp\nEmpath\n..."}}	
 	{{$cb := ccheckbox "custom_id" "spoiler"}}
 	{{$menu := cmenu "type" "channel" "custom_id" "kibC" "required" true}}	
@@ -143,22 +147,16 @@
     {{$mb := modalBuilder "text2-sendchars" "Send Characters" $l1 $l2 $l3}}
 	{{sendModal $mb}}
 {{else if eq $op 15}} {{/* JSON */}}
-	{{$bluffs := cslice "null" "null" "null"}}
-	{{$edition := sdict "id" "tb"}}
 	{{$players := cslice}}
-	{{$list := (dbGet .Channel.ID "townSq").Value}}
-	{{range $y := $list}}
+	{{range $y := (dbGet $gc "townSq").Value}}
 		{{range $id, $nick := $y}}
-    		{{$plSdict := sdict}}
-    		{{$plSdict.Set "name" $nick}}
-    		{{$players = $players.Append $plSdict}}
+			{{$players = $players.Append (sdict "name" $nick)}}
 		{{end}}
 	{{end}}
-	{{$main := sdict "bluffs" $bluffs "edition" $edition "players" $players}}
-	{{$json := json $main true}}
-	{{$msg := complexMessage "file" $json "filename" "Game State JSON" "ephemeral" true}}
-	{{sendResponse .Interaction.Token $msg}}
-{{else if and (eq $op 16) $isST}} {{/* ADD/REMOVE */}}
+	{{$main := sdict "bluffs" (cslice "null" "null" "null") "edition" (sdict "id" "tb") "players" $players}}
+	{{$msg := complexMessage "file" (json $main) "filename" "Game State JSON" "ephemeral" true}}
+	{{sendResponse nil $msg}}
+{{else if eq $op 16}} {{/* ADD/REMOVE */}}
 	{{$numSeats := len (reFindAll `\*\d+` $desc)}}
 	{{$options := cslice}}
 	{{range $numSeats}}
@@ -175,7 +173,4 @@
 	{{$mb := modalBuilder "text-addremove" "Add/Remove" $l1 $l2 $l3}}
 	{{sendModal $mb}}
 {{end}}
-{{$ccid := (dbGet $gameChannel "modalsCCID").Value}}
-{{if not $ccid}}
-	{{dbSet $gameChannel "modalsCCID" .CCID}}
-{{end}}
+{{dbSet $gc "modalsCCID" .CCID}}
