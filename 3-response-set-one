@@ -11,7 +11,7 @@
 {{$embed := index $TSmsg.Embeds 0}}
 {{$sdict := structToSdict $embed}}
 {{$desc := $sdict.Description}}
-
+ 
 {{if eq $I "joinleave"}}
 	{{if dbGet $gc "townSq"}} 
 		The game has already started! 
@@ -20,7 +20,6 @@
 	{{$st := (index $sdict.Fields 1).Value}} 
 	{{$threads := (dbGet $gc "stthreads").Value}}
 	{{$playerRole := $roles.Get "pRole"}}
-	{{.Values}} {{return}}
 	{{$seat := index (index .Values 0) 0}}
 	{{$nick := index .Values 1}}
 	{{$ex := print `\*\*` $seat `\).+`}}
@@ -72,7 +71,7 @@
 {{else if eq $I "threadNom"}}
 	{{$name := index .Values 0}}
 	{{$cname := index .Values 1}}
-	{{$threadNoms := createThread nil nil $name}} {{addThreadMember $threadNoms.ID .User}}
+	{{$threadNoms := createThread $gc nil $name}} {{addThreadMember $threadNoms.ID .User}}
 	{{dbSet $gc "threadNom" (str $threadNoms.ID)}} 
 	{{editChannelName $gc $cname}}
 	Created thread. {{return}}
@@ -93,13 +92,14 @@
 	{{$uid := str .User.ID}}
 	{{range $pl := $players}}
 		{{range $id, $nick := $pl}}
+			{{$nick = print "**" $nick "**"}}
 			{{if eq $id $nomineeID }}
         		{{$startIndex = add $i 1}} 
     		{{end}} 	
 			{{if reFind $vt (index $tsNames $i)}}
-				{{$ps = $ps.Append (print $sh $vt " " $nick)}} 
+				{{$ps = $ps.Append (print $sh $vt $nick)}} 
 			{{else if reFind $sh (index $tsNames $i)}}
-				{{$ps = $ps.Append (print $sh " " $nick)}} 
+				{{$ps = $ps.Append (print $sh $nick)}} 
 			{{else}}
 				{{$ps = $ps.Append $nick}} 
 			{{end}} 
@@ -117,6 +117,7 @@
 	{{$opts := (cslice 
 	(sdict "label" "Vote" "value" "10" "description" "vote for this nomination, including privately")
    	(sdict "label" "Edit Nomination" "value" "11" "description" "add a defense or edit accusation")
+    (sdict "label" "(ST) see votes" "value" "17" "description" "see all votes (including private)")
    	(sdict "label" "(ST) count votes" "value" "12" "description" "count votes & finalize nomination"))}}
 	{{$menu := cmenu "type" "text" "placeholder" "Choose an action" "options" $opts "custom_id" "textButtons" "min_values" 0 }}
 	{{$embed := (cembed "title" "Votes" "description" $votes "color" 13870849 "author" (sdict "icon_url" (.User.AvatarURL "256") "name" .Member.Nick)
@@ -152,7 +153,6 @@
 	Set status to {{$status}}
 {{else if eq $I "sendtoall"}}
 	{{$msg := index .Values 0}}
-	{{$msg = print "### " $msg}}
 	{{$threads := (dbGet $gc "stthreads").Value}}
 	{{$embed := (cembed "author" (sdict
 		"icon_url" (.User.AvatarURL "256")
