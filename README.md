@@ -82,7 +82,7 @@ The default emojis used are 🪦 (death shroud) and 🗳️ (vote token). To cha
 
 †`Whisper`: creates a private thread with the selected user for game day private chats. 
 
-†`Nominate`: creates a nomination in the nomination thread (must be made by the ST first) and adds the given accusation. Use the action menu on the nomination for voting.
+†`Nominate`: creates a nomination in the nomination thread (must be made by the ST first) and adds the given accusation. Use the action menu below the nomination for voting.
 
 †`Set Status`: mark yourself as dead, and remove your vote token ("ghost vote"). The Storyteller can override your status if needed.
 
@@ -90,32 +90,32 @@ The default emojis used are 🪦 (death shroud) and 🗳️ (vote token). To cha
 
 ### Nominations
 
-`Vote`: updates your vote statement in the nomination. Check the private vote option to hide your vote and not update the nomination. If you private vote, a button will appear for you to send it to your ST thread as a reference.
+`Vote`: updates your vote statement in the nomination. Check the private vote option to hide your vote and not update the nomination. If you private vote, a button will appear for you to send it to your ST thread as a copy.
 
 `Edit Nomination`: lets the nominee add/update their defense statement, and the nominator update their acccusation. It will automatically detect who is who. 
 
 ## Storyteller
 ### Town Square
-`(ST) start game!`: select to start the game with current players list. REQUIRED for in-game actions like nominations and voting. Players can't be added after this point.
+`(ST) start game!`: select to start the game with current players list. REQUIRED for in-game actions like nominations and voting. 
 
 †`(ST) create Nom thread`: creates the current day's nomination thread. Nominations can't be made without this first. 
 
 †`(ST) add/remove to kib`: adds the selected members to the kibitz channel, and removes the selected members currently in it.
 
-†`(ST) add/remove players`: to add a player, select them and the seat they should be added *after* (ex. if you want them in seat 8, select seat 7). To remove a player, don't select a seat number. 
+†`(ST) add/remove players`: to add a player, select them and the seat they should be added *after* (ex. if you want them in seat 8, select seat 7). To remove a player, don't select a seat number. *(This is meant for substituting players or Travellers - players should normally join on their own using `Join/Leave Game`)*
 
 †`(ST) set reminder`: set a reminder to ping the game role at hourly intervals. To send the message "The game ends in 2 hours!" for a 24-hour game day, set "Total time" to 24 and "Remind players that ..." to 2. Resubmit this for each reminder (4 hours left, 6 hours left ...). Use the dropdown menu in the response to send a copy of this reminder to your kibitz channel.
 
-†`(ST) send to threads`: sends the given message to all ST threads. 
+†`(ST) send to threads`: sends the given message to all ST threads. Markdown supported. 
 
-`(ST) send characters`: randomly assign the list of characters. Separate characters per line & use the official spelling. Select the channel to send the final list of characters to (kibitz, if you have it). Check the box to spoiler the name & image. This will work with non-official characters, though images won't work. 
+`(ST) send characters`: randomly assign the list of characters. Separate characters per line & use the official spelling. Select the channel to send the final list of characters to (kibitz, if you have it). Check the box to spoiler the name & image. This will work with non-official characters, though icons won't appear. 
 
 `(ST) end game`: deletes all data stored for the game, removes player & your ST role. Cannot be undone. 
 
 ### Nominations
 `(ST) see votes`: see votes in a cleaner format than the count votes pop-up modal. Gives an option to send to a kibitz channel (or any other).
 
-`(ST) count votes`: lets you tally the votes for each nomination. Private votes will show up at the top of the display, if any. Public votes are the same as on the nomination. Format like so: `1;1;1;0` where each number is how many it counts vor (ie. '1' for yes, '0' for no, other numbers for special characters like Banshee, Thief)
+`(ST) count votes`: lets you tally the votes for each nomination. Private votes will show up at the top of the display, if any. Public votes are the same as on the nomination. Format like so: `1;1;1;0` where each number is how many it counts for (ie. '1' for yes, '0' for no, other numbers for special characters like Banshee, Thief)
 
 †a slash commnand shortcut exists for this action
 
