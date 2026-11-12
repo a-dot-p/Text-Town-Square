@@ -7,7 +7,7 @@
 {{$emoji := (dbGet 7 "ttsEmoji").Value}}
 {{$sh := "🪦"}} {{$vt := "🗳️"}}
 {{if $emoji}} {{$sh = $emoji.Get "shroud"}} {{$vt = $emoji.Get "voteToken"}} {{end}}
-
+ 
 {{if eq $I "vote"}}
 	{{$embed := index .Interaction.Message.Embeds 0}}
 	{{$sdict := structToSdict $embed}}
@@ -22,8 +22,9 @@
 			{{$name = $x.Get $uid}}
 		{{end}}
 	{{end}}
+	{{$name = print `**` $name `**`}}
 	{{if not $p}}
-		{{$desc = reReplace (printf "%s\n.*" $name) $desc (printf "%s\n*%s*" $name $vote)}}
+		{{$desc = reReplace (printf "%s\n.*" (reQuoteMeta $name) ) $desc (printf "%s\n*%s*" $name $vote)}}
 		{{$sdict.Set "description" $desc}}
 		{{$msg := complexMessageEdit "embed" $sdict "content" $content}}
 		{{editMessage nil .Interaction.Message.ID $msg}}
@@ -166,10 +167,16 @@
 	{{$pRole := $roles.Get "pRole"}}
 	{{$ccid := $roles.Get "ccid"}}
 	{{$data := sdict "hours" (index .Values 2) "msg" $msg "role" $pRole}}
-	{{execCC $ccid nil $delay $data}} 
+	{{$key := randInt 10000 100000}}
+	{{if eq (toInt64 $delay) 0}} 	
+		{{execCC $ccid $cd $delay $data}} 
+ 	{{else}}
+		{{scheduleUniqueCC $ccid $cd $delay $key $data}} 
+	{{end}}
 	{{$menu := cmenu "type" "channel" "custom_id" "textButtons-r"}}	
+	{{$button := cbutton "custom_id" (printf "textButtons%d" $key) "label" "Cancel Reminder" "style" "danger"}}
 	{{$c := printf "Set the following reminder: **%s**\n(goes out at %s)\n\n*Send a copy to kibitz below:*" $msg $sendTime}}
-	{{$rsp := complexMessage "content" $c "menus" $menu}}
+	{{$rsp := complexMessage "content" $c "menus" $menu "buttons" $button}}
 	{{sendResponse nil $rsp}}
 {{else if eq $I "sendchars"}}
 	{{$chars := index .Values 0}}
@@ -208,4 +215,19 @@
 	{{$msg := joinStr "\n" $list}}
 	{{sendMessage $channel $msg}}
 	Succesfully sent characters.
+{{else if eq $I "seevotes"}}
+	{{$embed := index .Interaction.Message.Embeds 0}}
+	{{$sdict := structToSdict $embed}}
+	{{$desc := $sdict.Description}}
+	{{$kib := index (index .Values 0) 0}} 
+	{{$privateVotes := dbGet $cd .Message.ID}} 
+	{{$pv := "-# no private votes found for this nomination"}}
+	{{if $privateVotes}}
+		{{$pv = "**Private Votes:**"}}
+			{{range $nick, $vote := $privateVotes.Value}}
+				{{$pv = joinStr "\n" $pv (printf "%s - %s" $nick $vote)}}
+			{{end}}
+	{{end}}
+	{{sendMessage $kib (componentBuilder "container" (sdict "color" 13870849 "components"
+    (componentBuilder "text" $pv "separator" true "text" $desc)))}} Sent.
 {{end}}
