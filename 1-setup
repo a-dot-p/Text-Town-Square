@@ -13,7 +13,7 @@
 {{$sh := .Options.Get "shroud-emoji"}} {{$vt := .Options.Get "vote-token-emoji"}}
 {{$re := ""}}
 {{if and $sh $vt}}
-	{{dbSet 7 "ttsEmoji" (sdict "shroud" $sh "voteToken" $sh)}}
+	{{dbSet 7 "ttsEmoji" (sdict "shroud" $sh "voteToken" $vt)}}
 	{{$re = (printf "Set the following emojis:\nShroud: %s\nVote Token: %s\n*You only need to do this once, after which it is permanently stored for all future games*" $sh $vt)}}
 {{end}}
 {{$color := 13870849}}
