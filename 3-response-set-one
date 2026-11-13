@@ -139,7 +139,7 @@
 	{{$status := ""}}
 	{{$shr := print `(\s` $sh `)?`}}
 	{{$vtr := print `(\s` $vt `)?`}}
-	{{$ex := print $shr $vtr `([\w\-.\s<>]+\s` $user `)`}} 
+	{{$ex := print $shr $vtr `(\s.+\s` $user `)`}} 
 	{{if eq $op "0"}}
 		{{$desc = reReplace $ex $desc `${3}`}}
 		{{$status = "alive."}}
