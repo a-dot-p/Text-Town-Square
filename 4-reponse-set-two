@@ -7,7 +7,7 @@
 {{$emoji := (dbGet 7 "ttsEmoji").Value}}
 {{$sh := "🪦"}} {{$vt := "🗳️"}}
 {{if $emoji}} {{$sh = $emoji.Get "shroud"}} {{$vt = $emoji.Get "voteToken"}} {{end}}
- 
+
 {{if eq $I "vote"}}
 	{{$embed := index .Interaction.Message.Embeds 0}}
 	{{$sdict := structToSdict $embed}}
@@ -22,7 +22,7 @@
 			{{$name = $x.Get $uid}}
 		{{end}}
 	{{end}}
-	{{$name = print `**` $name `**`}}
+	{{$name = print $name ` **`}}
 	{{if not $p}}
 		{{$desc = reReplace (printf "%s\n.*" (reQuoteMeta $name) ) $desc (printf "%s\n*%s*" $name $vote)}}
 		{{$sdict.Set "description" $desc}}
@@ -44,7 +44,7 @@
 		{{$val.Set .Member.Nick $vote}}
 		{{dbSet $cd .Interaction.Message.ID $val}}
 		{{$btn := cbutton "label" "Send to ST Thread" "custom_id" "textButtons-pv" "style" "success"}}
-		{{$ct := (printf "**Your private vote:**\n%s" $vote)}} 
+		{{$ct := (printf "**%s\nYour private vote:**\n%s" .User.Mention $vote)}} 
         {{$resp := complexMessage "content" $ct "buttons" $btn}}
         {{sendResponse nil $resp}}
 		{{return}}
@@ -69,45 +69,29 @@
 	{{$sdict := structToSdict $embed}}
 	{{$desc := $sdict.Description}}
 	{{$result := index .Values 0}}
-	{{$rx := (printf `(%s\s)?(%s\s)?.+\n.+` $sh $vt)}}
-	{{$votes := reFindAll $rx $desc}}
+	{{$votes := cslice.AppendSlice (reFindAll `.+\n.+` $desc)}}
 	{{$indVotes := split $result ";"}}
 	{{if not (eq (len $indVotes) (len $votes))}}
-		Number of votes sent does not match player count.
-	{{return}}
-	{{end}}
-	
-	{{$iterations := (len $votes) }}
-	{{$j := 0}}
-	{{$val := ""}}
+		Number of votes sent does not match player count. 
+	{{return}} {{end}}
+	{{$tot := 0}}
 	{{$finalVotes := cslice}}
-	{{range $iterations}}
-		{{$val = index $indVotes $j}}
-		{{$val = toInt64 $val}}
-		{{if eq $val 1}}
-			{{$finalVotes = $finalVotes.Append "✅"}}
-		{{else if eq $val 0}}
-			{{$finalVotes = $finalVotes.Append "❌"}}
-		{{else if gt $val 1}}
-			{{$finalVotes = $finalVotes.Append (print "✅ **" $val "**")}}
-    	{{else if lt $val 0}}
-           	{{$finalVotes = $finalVotes.Append (print "➖ " "**" $val "**") }}
+	{{range $i, $v := $indVotes}}
+		{{if not (eq $v "?")}} {{$v = toInt64 $v}} {{$tot = add $tot $v}} {{end}}
+		{{if eq (str $v) "0"}}
+			{{$finalVotes = $finalVotes.Append (reReplace `\n.+` (index $votes $i) (print "\n" "❌ **" $tot "**"))}}
+		{{else if eq (str $v) "?"}}
+			{{$finalVotes = $finalVotes.Append (reReplace `\n.+` (index $votes $i) (print "\n" "❔"))}}
+		{{else}}
+			{{$finalVotes = $finalVotes.Append (reReplace `\n.+` (index $votes $i) (print "\n" "✅ **" $tot "**"))}}
 		{{end}}
-		{{$j = add 1 $j}}
 	{{end}}
- 
-	{{$k := 0}}
-	{{$editVotes := ""}}
-	{{range $votes}}
-		{{$symbol := index $finalVotes $k}}
-		{{$change := reReplace "\n.*" . (printf "\n%s" $symbol) }}
-		{{$editVotes = joinStr "\n\n" $editVotes $change}}
-		{{$k = add 1 $k}}
-	{{end}}
-	{{$sdict.Set "description" $editVotes}}
-	{{$message := complexMessageEdit "content" .Message.Content "embed" $sdict}}
-	{{editMessage nil .Interaction.Message.ID $message}}
+	{{$new := joinStr "\n\n" $finalVotes}}
+	{{$sdict.Set "description" $new}} {{$sdict.Set "color" 0}}
+	{{$msg := complexMessageEdit "content" .Message.Content "embed" $sdict}}
+	{{editMessage nil .Message.ID $msg}}
 	Succesfully counted votes.
+Total: **{{$tot}}**
 {{else if eq $I "endgame"}}
 	{{$embed := index .Interaction.Message.Embeds 0}}
 	{{$sdict := structToSdict $embed}}
