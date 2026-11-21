@@ -115,7 +115,7 @@ The default emojis used are 🪦 (death shroud) and 🗳️ (vote token). To cha
 ### Nominations
 `(ST) see votes`: see votes in a cleaner format than the count votes pop-up modal. Gives an option to send to a kibitz channel (or any other).
 
-`(ST) count votes`: lets you tally the votes for each nomination. Private votes will show up at the top of the display, if any. Public votes are the same as on the nomination. Format like so: `1;1;1;0` where each number is how many it counts for (ie. '1' for yes, '0' for no, other numbers for special characters like Banshee, Thief)
+`(ST) count votes`: lets you tally the votes for each nomination. Private votes will show up at the top of the display, if any. Public votes are the same as on the nomination. Format like so: `1;1;1;0` where each number is how many it counts for (ie. '1' for yes, '0' for no, other numbers for special characters like Banshee, Thief). Use `?` to represent secret votes (for Organ Grinder) or uncounted votes if you wish to count votes one by one.
 
 †a slash commnand shortcut exists for this action
 
