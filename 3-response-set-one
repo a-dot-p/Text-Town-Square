@@ -11,7 +11,7 @@
 {{$embed := index $TSmsg.Embeds 0}}
 {{$sdict := structToSdict $embed}}
 {{$desc := $sdict.Description}}
- 
+
 {{if eq $I "joinleave"}}
 	{{if dbGet $gc "townSq"}} 
 		The game has already started! 
@@ -20,6 +20,7 @@
 	{{$st := (index $sdict.Fields 1).Value}} 
 	{{$threads := (dbGet $gc "stthreads").Value}}
 	{{$playerRole := $roles.Get "pRole"}}
+	{{$kib := $roles.kibRole}}
 	{{$seat := index (index .Values 0) 0}}
 	{{$nick := index .Values 1}}
 	{{$ex := print `\*\*` $seat `\).+`}}
@@ -46,7 +47,7 @@
 			{{$threads.Set $uid (str $th.ID)}}
 		{{end}}
 		{{dbSet $gc "stthreads" $threads}}
-		{{addRole $playerRole}}
+		{{addRole $playerRole}} {{removeRole $kib}}
 		Joined the game.
 	{{end}}
 {{else if eq $I "start"}}
@@ -77,54 +78,44 @@
 	Created thread. {{return}}
 {{else if eq $I "nom"}}
 	{{$nomThread := (dbGet $gc "threadNom").Value}}
-	{{if not $nomThread}} Today's nomination thread was not made by the ST yet.
-	{{return}} {{end}}
-	{{$nomineeID := index (index .Values 0) 0}}
-	{{$accu := index .Values 1}}
-	{{$players := (dbGet $gc "townSq").Value}}
-	{{$numPlayers := len $players}} 
-	{{$nomineeURL := (getMember $nomineeID).User.AvatarURL "64"}}
-	{{$textRole := $roles.Get "pRole"}}	
-	{{$tsNames := cslice.AppendSlice (reFindAll `.+` $desc)}}
-	{{$startIndex := 0}}
-	{{$i := 0}}
-	{{$ps := cslice}}
-	{{$uid := str .User.ID}}
-	{{range $pl := $players}}
-		{{range $id, $nick := $pl}}
-			{{$nick = print "**" $nick "**"}}
-			{{if eq $id $nomineeID }}
-        		{{$startIndex = add $i 1}} 
-    		{{end}} 	
-			{{if reFind $vt (index $tsNames $i)}}
-				{{$ps = $ps.Append (print $sh $vt $nick)}} 
-			{{else if reFind $sh (index $tsNames $i)}}
-				{{$ps = $ps.Append (print $sh $nick)}} 
-			{{else}}
-				{{$ps = $ps.Append $nick}} 
-			{{end}} 
-		{{end}}
-		{{$i = add 1 $i}}
-	{{end}}
-	{{$votes := cslice}}
-	{{range $j := (seq 0 $numPlayers)}}
-		{{$k := (toInt (mod (add $startIndex $j) $numPlayers))}}
-		{{$voter := index $ps $k}}
-    	{{$votes = $votes.Append $voter}}
-	{{end}}
-	{{$votes = joinStr "\n...\n\n" $votes}}
-	{{$votes = joinStr "\n" $votes "..."}}
-	{{$opts := (cslice 
-	(sdict "label" "Vote" "value" "10" "description" "vote for this nomination, including privately")
-   	(sdict "label" "Edit Nomination" "value" "11" "description" "add a defense or edit accusation")
-    (sdict "label" "(ST) see votes" "value" "17" "description" "see all votes (including private)")
-   	(sdict "label" "(ST) count votes" "value" "12" "description" "count votes & finalize nomination"))}}
-	{{$menu := cmenu "type" "text" "placeholder" "Choose an action" "options" $opts "custom_id" "textButtons" "min_values" 0 }}
-	{{$embed := (cembed "title" "Votes" "description" $votes "color" 13870849 "author" (sdict "icon_url" (.User.AvatarURL "256") "name" .Member.Nick)
-    "thumbnail" (sdict "url" $nomineeURL))}}
-	{{sendMessageNoEscape $nomThread (complexMessage
-	"content" (printf "<@&%s>\n<@%s> nominates <@%s>!\n\n**Accusation:** %s\n\n**Defense:** ..." $textRole $uid $nomineeID $accu) "menus" $menu                     "embed" $embed)}}
-	Nomination made in thread. {{return}}
+    {{if not $nomThread}} Today's nomination thread was not made by the ST yet.
+    {{return}} {{end}}
+    {{$nomineeID := index (index .Values 0) 0}}
+    {{$accu := index .Values 1}}
+    {{$players := (dbGet $gc "townSq").Value}}
+    {{$numPlayers := len $players}} 
+    {{$nomineeURL := (getMember $nomineeID).User.AvatarURL "64"}}
+    {{$textRole := $roles.Get "pRole"}}	
+    {{$tsNames := cslice.AppendSlice (reFindAllSubmatches `\*\s(.+)<@(\d+)` $desc)}}
+    {{$startIndex := 0}}
+    {{$s1 := cslice}} {{$s2 := cslice}}
+    {{$uid := str .User.ID}}
+    {{$found := false}}
+
+    {{range $i, $p := $tsNames}}
+        {{$name := index $p 1}}
+        {{$name = print "**" $name "**"}}
+        {{if not $found}}
+            {{if eq (index $p 2) $nomineeID}} {{$found = true}} {{end}}
+            {{$s2 = $s2.Append $name}}
+        {{else}}
+            {{$s1 = $s1.Append $name}}
+        {{end}}
+    {{end}}
+    {{$votes := $s1.AppendSlice $s2}}
+    {{$votes = joinStr "\n...\n\n" $votes}}
+    {{$votes = joinStr "\n" $votes "..."}}
+    {{$opts := (cslice 
+        (sdict "label" "Vote" "value" "10" "description" "vote for this nomination, including privately")
+        (sdict "label" "Edit Nomination" "value" "11" "description" "add a defense or edit accusation")
+        (sdict "label" "(ST) see votes" "value" "17" "description" "see all votes (including private)")
+        (sdict "label" "(ST) count votes" "value" "12" "description" "count votes & finalize nomination"))}}
+    {{$menu := cmenu "type" "text" "placeholder" "Choose an action" "options" $opts "custom_id" "textButtons" "min_values" 0 }}
+    {{$embed := (cembed "title" "Votes" "description" $votes "color" 13870849 "author" (sdict "icon_url" (.User.AvatarURL "256") "name" .Member.Nick)
+        "thumbnail" (sdict "url" $nomineeURL))}}
+    {{sendMessageNoEscape $nomThread (complexMessage
+    "content" (printf "<@&%s>\n<@%s> nominates <@%s>!\n\n**Accusation:** %s\n\n**Defense:** ..." $textRole $uid $nomineeID $accu) "menus" $menu "embed" $embed)}}
+    Nomination made in thread. {{return}}
 {{else if eq $I "status"}}
 	{{$strole := $roles.Get "stRole"}}
 	{{$target := index .Values 0}} 
