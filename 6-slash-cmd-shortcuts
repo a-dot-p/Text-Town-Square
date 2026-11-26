@@ -8,7 +8,7 @@
 	{{$data = 3}}
 {{else if eq $cmd "start-game-day"}}
 	{{$data = 5}}
-{{else if eq $cmd "add-to-kib"}}
+{{else if eq $cmd "manage-roles"}}
 	{{$data = 6}}
 {{else if eq $cmd "set-reminder"}}
 	{{$data = 7}}
@@ -16,7 +16,7 @@
 	{{$data = 8}}
 {{else if eq $cmd "help"}}
 	{{$cmd := .SlashID}}
-	{{$msg := (printf "**Players**\n</text whisper:%d>\n</text nominate:%d>\n</text set-status:%d>\n\n**Storyteller**\n</text start-game-day:%d>\n</text add-to-kib:%d>\n</text set-reminder:%d>\n</text send-to-threads:%d>\n\n*these should be sent in your game channel*" $cmd $cmd $cmd $cmd $cmd $cmd $cmd)}}
+	{{$msg := (printf "**Players**\n</text whisper:%d>\n</text nominate:%d>\n</text set-status:%d>\n\n**Storyteller**\n</text start-game-day:%d>\n</text manage-roles:%d>\n</text set-reminder:%d>\n</text send-to-threads:%d>\n\n*these should be sent in your game channel*\n\n**[Full Guide Here](https://github.com/a-dot-p/Text-Town-Square#full-guide)**" $cmd $cmd $cmd $cmd $cmd $cmd $cmd)}}
 	{{$emb := cembed "color" 13870849 "description" $msg "title" "Slash Command Shortcuts"}}
 	{{sendResponse .Interaction.Token $emb}} {{return}}
 {{end}}
