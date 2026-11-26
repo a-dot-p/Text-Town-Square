@@ -54,7 +54,7 @@
 	(sdict "label" "Get JSON" "value" "15" "description" "get game state json for clocktower.live")            
  	(sdict "label" "(ST) start game!" "value" "9" "description" "start the game with current count")
    	(sdict "label" "(ST) start game day" "value" "5" "description" "create nom thread and edit channel name")
-   	(sdict "label" "(ST) add/remove to kib" "value" "6" "description" "add user to kib. if not in, or remove if in")
+   	(sdict "label" "(ST) manage roles" "value" "6" "description" "change who is in kib and/or co-sts")
     (sdict "label" "(ST) add/remove players" "value" "16" "description" "add or remove players, including Travellers")
    	(sdict "label" "(ST) set reminder" "value" "7" "description" "set reminders for end of day")
    	(sdict "label" "(ST) send to threads" "value" "8" "description" "send a message to all ST threads")
