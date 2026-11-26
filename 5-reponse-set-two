@@ -7,7 +7,6 @@
 {{$emoji := (dbGet 7 "ttsEmoji").Value}}
 {{$sh := "🪦"}} {{$vt := "🗳️"}}
 {{if $emoji}} {{$sh = $emoji.Get "shroud"}} {{$vt = $emoji.Get "voteToken"}} {{end}}
-
 {{if eq $I "vote"}}
 	{{$embed := index .Interaction.Message.Embeds 0}}
 	{{$sdict := structToSdict $embed}}
@@ -77,11 +76,13 @@
 	{{$tot := 0}}
 	{{$finalVotes := cslice}}
 	{{range $i, $v := $indVotes}}
-		{{if not (eq $v "?")}} {{$v = toInt64 $v}} {{$tot = add $tot $v}} {{end}}
+		{{if not (or (eq $v "?") (eq $v "-"))}} {{$v = toInt64 $v}} {{$tot = add $tot $v}} {{end}}
 		{{if eq (str $v) "0"}}
-			{{$finalVotes = $finalVotes.Append (reReplace `\n.+` (index $votes $i) (print "\n" "❌ **" $tot "**"))}}
+			{{$finalVotes = $finalVotes.Append (reReplace `\n.+` (index $votes $i) (print "\n" "❌"))}}
 		{{else if eq (str $v) "?"}}
 			{{$finalVotes = $finalVotes.Append (reReplace `\n.+` (index $votes $i) (print "\n" "❔"))}}
+		{{else if eq (str $v) "-"}}
+			{{$finalVotes = $finalVotes.Append (index $votes $i)}}
 		{{else}}
 			{{$finalVotes = $finalVotes.Append (reReplace `\n.+` (index $votes $i) (print "\n" "✅ **" $tot "**"))}}
 		{{end}}
@@ -101,7 +102,7 @@ Total: **{{$tot}}**
 	{{return}}
 	{{end}}
 	{{$pRole := $roles.Get "pRole"}}
-	{{$names := cslice.AppendSlice (reFindAll .User.Mention $desc)}}
+	{{$names := cslice.AppendSlice (reFindAll `<@\d+>` $desc)}}
 	{{range $names}}
 		{{takeRole . $pRole}}
 	{{end}}
@@ -125,20 +126,26 @@ Total: **{{$tot}}**
    	{{addThreadMember $thread.ID .User.ID}}
 	Created whisper.
 {{else if eq $I "kibitz"}}
-	{{$members := index .Values 0}} 
+	{{$kibs := index .Values 0}} 
+	{{$cost := index .Values 1}}
 	{{$kibRole := $roles.Get "kibRole"}}
-	{{$added := ""}} {{$removed := ""}}
-	{{range $members}}
-		{{$x := getMember . }}
+	{{$str := $roles.Get "stRole"}}
+	{{range $kibs}}
   		{{if targetHasRole . $kibRole}}
       		{{takeRole . $kibRole}}
-			{{$removed = print $removed $x.Nick ", "}}
 		{{else}}
 			{{giveRole . $kibRole}}
-			{{$added = print $added $x.Nick ", "}}
 		{{end}}
   	{{end}}
-	Added {{$added}} to kibitz & removed {{$removed}} from kibitz. 
+	{{range $cost}}
+  		{{if targetHasRole . $str}}
+			{{if eq . (str $.User.ID)}} You cannot remove yourself as ST. {{return}} {{end}}
+      		{{takeRole . $str}}
+		{{else}}
+			{{giveRole . $str}}
+		{{end}}
+  	{{end}}
+	Done.
 {{else if eq $I "setreminder"}}
 	{{$msg := index .Values 0}}
 	{{$total := toFloat (index .Values 1)}}
@@ -158,9 +165,10 @@ Total: **{{$tot}}**
 		{{scheduleUniqueCC $ccid $cd $delay $key $data}} 
 	{{end}}
 	{{$menu := cmenu "type" "channel" "custom_id" "textButtons-r"}}	
-	{{$button := cbutton "custom_id" (printf "textButtons%d" $key) "label" "Cancel Reminder" "style" "danger"}}
+	{{$b2 := cbutton "custom_id" (printf "text2Buttons%d" $key) "label" "Cancel Reminder" "style" "danger"}}
+	{{$b1 := cbutton "custom_id" "text2Buttonsrem" "label" "Set Another Reminder" "style" "primary"}}
 	{{$c := printf "Set the following reminder: **%s**\n(goes out at %s)\n\n*Send a copy to kibitz below:*" $msg $sendTime}}
-	{{$rsp := complexMessage "content" $c "menus" $menu "buttons" $button}}
+	{{$rsp := complexMessage "content" $c "menus" $menu "buttons" (cslice $b1 $b2)}}
 	{{sendResponse nil $rsp}}
 {{else if eq $I "sendchars"}}
 	{{$chars := index .Values 0}}
@@ -206,6 +214,7 @@ Total: **{{$tot}}**
 	{{$kib := index (index .Values 0) 0}} 
 	{{$privateVotes := dbGet $cd .Message.ID}} 
 	{{$pv := "-# no private votes found for this nomination"}}
+	{{$fmt := "**Formatting**\n`1` = yes\n`0` = no\n`any number` = that amount of votes \n`-` = leave as-is\n`?` = secret vote\n\nEx. 1;1;0;-;-\n*counts first two as yes, the third as no, leaves the rest as-is currently*"}}
 	{{if $privateVotes}}
 		{{$pv = "**Private Votes:**"}}
 			{{range $nick, $vote := $privateVotes.Value}}
@@ -213,5 +222,5 @@ Total: **{{$tot}}**
 			{{end}}
 	{{end}}
 	{{sendMessage $kib (componentBuilder "container" (sdict "color" 13870849 "components"
-    (componentBuilder "text" $pv "separator" true "text" $desc)))}} Sent.
+    (componentBuilder "text" $pv "separator" true "text" $desc "separator" true "text" $fmt)))}} Sent.
 {{end}}
