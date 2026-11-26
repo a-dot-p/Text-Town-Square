@@ -33,20 +33,21 @@ If your server doesn't have it, add [YAGPDB](yagpdb.xyz). Go to [its control pan
 In Discord, make sure it has the permissions to add roles, create & manage threads (including private), delete threads, send messages, and pin messages. 
 
 ## 2) Add commands
-You will need `4` command slots open to run Text Town Square (the max is 100 for free users). Add the 5th if you want slash commmand shortcuts, which can be found under the `/text` category. Add the commands through the links below:
+You will need `5` command slots open to run Text Town Square (the max is 100 for free users). Add the 6th if you want slash commmand shortcuts, which can be found under the `/text` category. Add the commands through the links below:
 
 ###  Setup
 1. [Setup](https://yagpdb.xyz/cc/K1m-PrZ5xS)
 
      **$\color{red}{\text{IMPORTANT:}}$** set the role restrictions at the bottom to **Mod** or **Admin** roles on your server. This command can be abused.
  
-2. [Modals](https://yagpdb.xyz/cc/zgwGXaaZPM)
-3. [Responses #1](https://yagpdb.xyz/cc/ZWo3dI93oK)
-4. [Responses #2](https://yagpdb.xyz/cc/bJd-69GBH1)
+2. [Modals #1](https://yagpdb.xyz/cc/zgwGXaaZPM)
+3. [Modals #2](https://yagpdb.xyz/cc/rIek8UP9S3)
+4. [Responses #1](https://yagpdb.xyz/cc/ZWo3dI93oK)
+5. [Responses #2](https://yagpdb.xyz/cc/bJd-69GBH1)
 
 *Optional*
 
-5. [Slash Command Shortcuts](https://yagpdb.xyz/cc/j4XLrAna1N)
+6. [Slash Command Shortcuts](https://yagpdb.xyz/cc/j4XLrAna1N)
 
 
 ## 3) Creating a game
@@ -100,7 +101,7 @@ The default emojis used are 🪦 (death shroud) and 🗳️ (vote token). To cha
 
 †`(ST) create Nom thread`: creates the current day's nomination thread. Nominations can't be made without this first. 
 
-†`(ST) add/remove to kib`: adds the selected members to the kibitz channel, and removes the selected members currently in it.
+†`(ST) manage roles`: adds the selected members to the kibitz channel, and removes the selected members currently in it. Does the same for Co-STs. 
 
 †`(ST) add/remove players`: to add a player, select them and the seat they should be added *after* (ex. if you want them in seat 8, select seat 7). To remove a player, don't select a seat number. *(This is meant for substituting players or Travellers - players should normally join on their own using `Join/Leave Game`)*
 
@@ -113,6 +114,8 @@ The default emojis used are 🪦 (death shroud) and 🗳️ (vote token). To cha
 `(ST) end game`: deletes all data stored for the game, removes player & your ST role. Cannot be undone. 
 
 ### Nominations
+`(ST) ping non-voters`: Sends a ping to all players who haven't voted on the selected nomination.
+
 `(ST) see votes`: see votes in a cleaner format than the count votes pop-up modal. Gives an option to send to a kibitz channel (or any other).
 
 `(ST) count votes`: lets you tally the votes for each nomination. Private votes will show up at the top of the display, if any. Public votes are the same as on the nomination. Format like so: `1;1;1;0` where each number is how many it counts for (ie. '1' for yes, '0' for no, other numbers for special characters like Banshee, Thief). Use `?` to represent secret votes (for Organ Grinder) or uncounted votes if you wish to count votes one by one.
