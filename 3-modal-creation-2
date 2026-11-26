@@ -1,0 +1,92 @@
+{{if and (not .Values) (not .ExecData) (not .StrippedID)}} {{ephemeralResponse}} Menu reset. {{deleteResponse 1}} {{return}} {{end}}
+{{$op := 0}}
+{{$nd := true}}
+{{$TSmsg := ""}}
+{{$gc := .Channel.ID}}
+{{if .Channel.IsThread}} {{$gc = .Channel.ParentID}} {{end}}
+{{$roles := (dbGet $gc "roleInfo").Value}}
+{{if .Values}}
+	{{if .StrippedID}} {{/* reminders log */}}
+		{{sendMessage (index .Values 0) (reReplace `\*Se.+` .Message.Content "")}} {{ephemeralResponse}} Sent!
+		{{return}}
+	{{end}}
+	{{$op = toInt64 (index .Values 0)}}
+	{{$TSmsg = .Message}}
+{{else if .StrippedID}} {{/* BUTTONS */}}
+	{{if reFind `\d+` .StrippedID}} {{/* cancel reminder*/}}
+		{{$ccid := $roles.Get "ccid"}}
+		{{cancelScheduledUniqueCC $ccid .StrippedID}}
+		{{ephemeralResponse}} Canceled.
+		{{return}}
+	{{else if eq .StrippedID "rem"}}
+		{{$ti := ctextInput "custom_id" "setreminder" "style" 1 "required" true "placeholder" "e.g. 12"}}
+		{{$ti2 := ctextInput "custom_id" "setreminderMsg" "style" 1 "required" true "placeholder" "e.g. Noms & whispers close"}}
+		{{$ti3 := ctextInput "custom_id" "setremindertotal" "style" 1 "required" true "placeholder" "e.g. 24"}}
+		{{$l3 := clabel "label" "Remind players that ___ hours are left" "component" $ti "description" "please resubmit this per each reminder you want to go out"}}
+		{{$l1 := clabel "label" "Remind message" "component" $ti2}}	
+		{{$l2 := clabel "label" "Total time in hours" "component" $ti3}}	
+		{{$mb := modalBuilder "text2-setreminder" "Set Player Reminder" $l1 $l2 $l3 }}
+		{{sendModal $mb}} {{return}}
+	{{else}}
+		{{$th := ((dbGet $gc "stthreads").Value).Get (str .User.ID)}} {{/* send PV */}}
+		{{$link := (getMessage nil .Message.Reference.MessageID).Link}}
+		{{sendMessage $th (printf "%s\n%s" .Message.Content $link)}}
+		{{ephemeralResponse}} Sent.
+		{{return}}
+	{{end}}
+{{end}}
+{{$desc := (structToSdict (index $TSmsg.Embeds 0)).Description}}
+{{$isST := hasRole ($roles.Get "stRole")}}
+{{if and (not $isST) (in (cslice 12 17 18) $op)}}
+	{{ephemeralResponse}} You are not an ST. {{return}}
+{{end}}
+{{if eq $op 10}} {{/*VOTE*/}}
+	{{$ti := ctextInput "custom_id" "voteTTS" "style" 1 "required" true "placeholder" "e.g. Yes if Bob votes"}}	
+	{{$cb := ccheckbox "custom_id" "privatevote"}}
+	{{$l1 := clabel "label" "Vote message" "component" $ti "description" "your vote text to display above"}}
+	{{$l2 := clabel "label" "Private vote?" "component" $cb "description" "mark if this is a private vote instead"}}
+	{{$mb := modalBuilder "text2-vote" "Vote" $l1 $l2}}
+	{{sendModal $mb}}
+{{else if eq $op 11}} {{/*ADD DEFENSE*/}}
+	{{$ti := ctextInput "custom_id" "adddefense" "style" 2 "required" true}}	
+	{{$l := clabel "label" "New accusation or defense" "component" $ti}}
+	{{$mb := modalBuilder "text2-adddefense" "Edit Nominations" $l}}
+	{{sendModal $mb}}
+{{else if eq $op 12}} {{/* COUNT VOTES */}}
+	{{$td := ctextDisplay $desc}}
+	{{$privateVotes := dbGet $gc .Interaction.Message.ID}} 
+	{{$desc := "-# no private votes found for this nomination"}}
+	{{if $privateVotes}}
+		{{$desc = "**Private Votes:**"}}
+		{{range $nick, $vote := $privateVotes.Value}}
+			{{$desc = joinStr "\n" $desc (printf "%s - %s" $nick $vote)}}
+		{{end}}
+		{{$desc = print $desc "\n\n**Public Votes:**"}}
+	{{end}}
+	{{$tdp := ctextDisplay $desc}}
+	{{$ti := ctextInput "custom_id" "countVotesTTS" "style" 1 "required" true "placeholder" "e.g. 1;1;0;-;-"}}	
+	{{$l := clabel "label" "Votes in order, separated by ;" "component" $ti "description" "Use 'see votes' for details about formatting"}}
+	{{$mb := modalBuilder "text2-countvotes" "Count Votes" $tdp $td $l}}
+	{{sendModal $mb}} 
+{{else if eq $op 17}} {{/* SEE VOTES*/}}
+	{{$menu := cmenu "type" "channel" "custom_id" "svMenu" "required" true}}	
+	{{$l := clabel "label" "Kibitz or other channel to send votes" "component" $menu}}
+	{{$mb := modalBuilder "text2-seevotes" "See Votes" $l}} {{sendModal $mb}} 
+{{else if eq $op 18}} {{/* PING NON VOTERS*/}}
+	{{ephemeralResponse}}
+	{{$nonV := cslice.AppendSlice (reFindAllSubmatches `\*\*(.+)\*\*\n\.\.\.` $desc)}}
+	{{$tSq := (dbGet $gc "townSq").Value}}
+	{{$msg := cslice}}
+	{{range $i, $nv := $nonV}}
+		{{$nv = index $nv 1}}
+		{{range $tSq}}
+			{{range $id, $name := .}}
+				{{if eq $name (trimSpace $nv)}}
+					{{$msg = $msg.Append (printf "<@%s>" $id)}}
+				{{end}}
+			{{end}}
+		{{end}}
+	{{end}}
+	{{$msg = joinStr " " "Please vote on this nomination" $msg}}
+	{{sendResponse nil $msg}}
+{{end}}
