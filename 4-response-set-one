@@ -109,8 +109,9 @@
         (sdict "label" "Vote" "value" "10" "description" "vote for this nomination, including privately")
         (sdict "label" "Edit Nomination" "value" "11" "description" "add a defense or edit accusation")
         (sdict "label" "(ST) see votes" "value" "17" "description" "see all votes (including private)")
+        (sdict "label" "(ST) ping non-voters" "value" "18" "description" "ping players who haven't voted")
         (sdict "label" "(ST) count votes" "value" "12" "description" "count votes & finalize nomination"))}}
-    {{$menu := cmenu "type" "text" "placeholder" "Choose an action" "options" $opts "custom_id" "textButtons" "min_values" 0 }}
+    {{$menu := cmenu "type" "text" "placeholder" "Choose an action" "options" $opts "custom_id" "text2Buttons" "min_values" 0 }}
     {{$embed := (cembed "title" "Votes" "description" $votes "color" 13870849 "author" (sdict "icon_url" (.User.AvatarURL "256") "name" .Member.Nick)
         "thumbnail" (sdict "url" $nomineeURL))}}
     {{sendMessageNoEscape $nomThread (complexMessage
@@ -124,13 +125,13 @@
 		{{$user = print "<@" (index $target 0) ">"}}
 	{{else if $target}}
 		You are not authorized to change someone's status. 
-		{{return}}
+	{{return}}
 	{{end}}
 	{{$op := index .Values 1}} 
 	{{$status := ""}}
-	{{$shr := print `(\s` $sh `)?`}}
-	{{$vtr := print `(\s` $vt `)?`}}
-	{{$ex := print $shr $vtr `(\s.+\s` $user `)`}} 
+	{{$shr := print `( ` $sh `)?`}}
+	{{$vtr := print `( ` $vt `)?`}}
+	{{$ex := print $shr $vtr `( .+ ` $user `)`}} 
 	{{if eq $op "0"}}
 		{{$desc = reReplace $ex $desc `${3}`}}
 		{{$status = "alive."}}
